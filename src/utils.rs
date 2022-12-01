@@ -29,6 +29,7 @@ pub fn fast_parse_int_8(s: &str) -> usize {
 mod tests {
     use super::*;
 
+    #[test]
     fn test_fast_parse_int() {
         assert_eq!(fast_parse_int("1"), 1);
         assert_eq!(fast_parse_int("0"), 0);
@@ -38,6 +39,7 @@ mod tests {
         assert_eq!(fast_parse_int("12345678"), 12345678);
     }
 
+    #[test]
     fn test_fast_parse_int_8() {
         assert_eq!(fast_parse_int_8("1"), 1);
         assert_eq!(fast_parse_int_8("0"), 0);
