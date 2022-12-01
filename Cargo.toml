@@ -7,7 +7,13 @@ edition = "2021"
 
 [dependencies]
 
+[dev-dependencies]
+criterion = "0.4"
+
 [features]
 day01 = []
 default = ["day01"]
 
+[[bench]]
+name = "days"
+harness = false
