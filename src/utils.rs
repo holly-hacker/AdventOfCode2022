@@ -6,7 +6,7 @@
 pub fn fast_parse_int(s: &str) -> usize {
     debug_assert!(!s.is_empty());
     debug_assert!(s.len() < usize::MAX.to_string().len()); // err on the side of caution
-    debug_assert!(s.chars().all(|c| c.is_digit(10)));
+    debug_assert!(s.chars().all(|c| c.is_ascii_digit()));
 
     s.bytes().fold(0, |a, c| a * 10 + (c & 0x0f) as usize)
 }
@@ -18,7 +18,7 @@ pub fn fast_parse_int(s: &str) -> usize {
 pub fn fast_parse_int_8(s: &str) -> usize {
     debug_assert!(!s.is_empty());
     debug_assert!(s.len() <= 8);
-    debug_assert!(s.chars().all(|c| c.is_digit(10)));
+    debug_assert!(s.chars().all(|c| c.is_ascii_digit()));
 
     s.bytes()
         .take(8)

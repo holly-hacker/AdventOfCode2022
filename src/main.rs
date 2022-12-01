@@ -1,6 +1,6 @@
 #![allow(clippy::wildcard_imports)]
 
-include!("lib.rs");
+use aoc2022::*;
 
 fn main() {
     #[cfg(feature = "day01")]

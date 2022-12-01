@@ -18,7 +18,7 @@ impl AocDay<usize> for Day {
             let sum = lines
                 .by_ref()
                 .take_while(|&l| !l.is_empty())
-                .map(|l| fast_parse_int_8(l))
+                .map(fast_parse_int_8)
                 .sum();
 
             max = max.max(sum);
@@ -39,7 +39,7 @@ impl AocDayFull<usize> for Day {
             let sum = lines
                 .by_ref()
                 .take_while(|&l| !l.is_empty())
-                .map(|l| fast_parse_int_8(l))
+                .map(fast_parse_int_8)
                 .sum();
 
             if sum <= max[0] {
