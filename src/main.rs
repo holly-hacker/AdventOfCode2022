@@ -1,5 +1,6 @@
 #![allow(clippy::wildcard_imports)]
 
+#[allow(unused_imports)]
 use aoc2022::*;
 
 fn main() {
