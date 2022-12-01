@@ -5,5 +5,5 @@ use aoc2022::*;
 
 fn main() {
     #[cfg(feature = "day01")]
-    day01::Day::execute_gold();
+    day01::Day::execute();
 }

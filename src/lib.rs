@@ -46,7 +46,7 @@ pub trait AocDay<T: Display> {
 }
 
 pub trait AocDayFull<T: Display>: AocDay<T> {
-    fn execute_gold() {
+    fn execute() {
         let (output, time) = run_timed(|| Self::calculate_silver(Self::INPUT_SAMPLE));
         println!(
             "Day {}, silver (sample): {} ({:?})",
