@@ -9,6 +9,7 @@ edition = "2021"
 
 [dev-dependencies]
 criterion = "0.4"
+iai = "0.1"
 
 [profile.release]
 codegen-units = 1
@@ -20,5 +21,9 @@ day01 = []
 default = ["day01"]
 
 [[bench]]
-name = "days"
+name = "criterion"
+harness = false
+
+[[bench]]
+name = "iai"
 harness = false
