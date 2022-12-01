@@ -6,12 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+paste = "1"
 
 [dev-dependencies]
 cfg-if = "1"
 criterion = "0.4"
 iai = "=0.1.1" # the benchmark code contains code based on `iai::main` and needs to be synchronized
-paste = "1"
 
 [profile.release]
 codegen-units = 1

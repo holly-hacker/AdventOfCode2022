@@ -8,11 +8,28 @@ use std::fmt::Display;
 
 mod utils;
 
-#[cfg(feature = "day01")]
-pub mod day01;
+macro_rules! register_days {
+    ( $($day_index:expr,)* ) => {
+        $(
+            paste::paste! { #[cfg(feature = "day" $day_index)] pub mod [<day $day_index>]; }
+        )*
 
-/// Executes some code and records the time it took to run
-pub fn run_timed<T, F>(fun: F) -> (T, std::time::Duration)
+        pub fn execute_all() {
+            $(
+                paste::paste! {
+                    #[cfg(feature = "day" $day_index)]
+                    [<day $day_index>]::Day::execute();
+                }
+            )*
+        }
+    }
+}
+
+register_days! {
+    01,
+}
+
+fn run_timed<T, F>(fun: F) -> (T, std::time::Duration)
 where
     F: FnOnce() -> T,
 {
