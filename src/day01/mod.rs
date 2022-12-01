@@ -1,23 +1,24 @@
 use super::*;
+use crate::utils::*;
 
 pub struct Day;
 
-impl AocDay<u32> for Day {
+impl AocDay<usize> for Day {
     const DAY: u32 = 1;
 
     const INPUT_SAMPLE: &'static str = include_str!("input_sample.txt");
 
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
-    fn calculate_silver(input: &str) -> u32 {
-        let mut lines = input.trim().lines().peekable();
+    fn calculate_silver(input: &str) -> usize {
+        let mut lines = input.split('\n').peekable();
         let mut max = 0;
 
         while lines.peek().is_some() {
             let sum = lines
                 .by_ref()
                 .take_while(|&l| !l.is_empty())
-                .flat_map(str::parse::<u32>)
+                .map(|l| fast_parse_int_8(l))
                 .sum();
 
             max = max.max(sum);
@@ -27,9 +28,9 @@ impl AocDay<u32> for Day {
     }
 }
 
-impl AocDayFull<u32> for Day {
-    fn calculate_gold(input: &str) -> u32 {
-        let mut lines = input.trim().lines().peekable();
+impl AocDayFull<usize> for Day {
+    fn calculate_gold(input: &str) -> usize {
+        let mut lines = input.split('\n').peekable();
 
         // note: order is from least to most
         let mut max = [0, 0, 0];
@@ -38,7 +39,7 @@ impl AocDayFull<u32> for Day {
             let sum = lines
                 .by_ref()
                 .take_while(|&l| !l.is_empty())
-                .flat_map(str::parse::<u32>)
+                .map(|l| fast_parse_int_8(l))
                 .sum();
 
             if sum <= max[0] {

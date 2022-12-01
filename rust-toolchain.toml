@@ -1,0 +1,4 @@
+[toolchain]
+# channel = "nightly-2022-12-01" # 7% slower than stable?
+channel = "stable"
+components = ["rust-src", "clippy"]
