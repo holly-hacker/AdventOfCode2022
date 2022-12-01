@@ -9,24 +9,24 @@ use std::fmt::Display;
 mod utils;
 
 macro_rules! register_days {
-    ( $($day_index:expr,)* ) => {
-        $(
-            paste::paste! { #[cfg(feature = "day" $day_index)] pub mod [<day $day_index>]; }
-        )*
+    ( $($day_index:literal $type:ident,)* ) => {
+        // add `mod`
+        $(paste::paste! { #[cfg(feature = "day" $day_index)] pub mod [<day $day_index>]; })*
 
+        /// Run implemenation for all days that are included in the feature set
         pub fn execute_all() {
-            $(
-                paste::paste! {
-                    #[cfg(feature = "day" $day_index)]
-                    [<day $day_index>]::Day::execute();
-                }
-            )*
+            $(paste::paste! {
+                #[cfg(feature = "day" $day_index)] register_days!(impl $day_index $type);
+            })*
         }
-    }
+    };
+    (impl $day_index:literal gold  ) => { paste::paste! { [<day $day_index>]::Day::execute(); }};
+    (impl $day_index:literal silver) => { paste::paste! { [<day $day_index>]::Day::execute_silver(); }};
 }
 
+// === Register days here! ===
 register_days! {
-    01,
+    01 gold,
 }
 
 fn run_timed<T, F>(fun: F) -> (T, std::time::Duration)
@@ -55,8 +55,7 @@ pub trait AocDay<T: Display> {
         let (output, time) = run_timed(|| Self::calculate_silver(Self::INPUT_REAL));
         println!("Day {}, silver: {} ({:?})", Self::DAY, output, time);
 
-        println!("Day {}, gold (sample): skipped", Self::DAY);
-        println!("Day {}, gold: skipped", Self::DAY);
+        println!("Day {} has no gold implementation", Self::DAY);
     }
 
     fn calculate_silver(input: &str) -> T;
