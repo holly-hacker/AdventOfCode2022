@@ -1,4 +1,8 @@
-#![allow(clippy::wildcard_imports)]
+#![allow(
+    clippy::wildcard_imports,
+    clippy::missing_const_for_fn,
+    clippy::unreadable_literal
+)]
 
 use std::fmt::Display;
 

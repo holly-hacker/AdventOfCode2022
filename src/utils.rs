@@ -34,8 +34,8 @@ mod tests {
         assert_eq!(fast_parse_int("1"), 1);
         assert_eq!(fast_parse_int("0"), 0);
         assert_eq!(fast_parse_int("1234"), 1234);
-        assert_eq!(fast_parse_int("0001"), 0001);
-        assert_eq!(fast_parse_int("0000"), 0000);
+        assert_eq!(fast_parse_int("0001"), 1);
+        assert_eq!(fast_parse_int("0000"), 0);
         assert_eq!(fast_parse_int("12345678"), 12345678);
     }
 
@@ -44,8 +44,8 @@ mod tests {
         assert_eq!(fast_parse_int_8("1"), 1);
         assert_eq!(fast_parse_int_8("0"), 0);
         assert_eq!(fast_parse_int_8("1234"), 1234);
-        assert_eq!(fast_parse_int_8("0001"), 0001);
-        assert_eq!(fast_parse_int_8("0000"), 0000);
+        assert_eq!(fast_parse_int_8("0001"), 1);
+        assert_eq!(fast_parse_int_8("0000"), 0);
         assert_eq!(fast_parse_int_8("12345678"), 12345678);
     }
 }

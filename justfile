@@ -1,6 +1,12 @@
 default:
     @just --list
 
+check:
+    cargo check --benches --tests --no-default-features
+    cargo check --benches --tests
+    cargo clippy --benches --tests --no-default-features -- --warn clippy::nursery --warn clippy::pedantic
+    cargo clippy --benches --tests -- --warn clippy::nursery --warn clippy::pedantic
+
 bench feature:
     cargo test --no-default-features --features {{feature}}
     cargo bench --bench criterion --no-default-features --features {{feature}}

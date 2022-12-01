@@ -1,3 +1,5 @@
+#![allow(clippy::missing_const_for_fn)]
+
 use criterion::criterion_main;
 
 macro_rules! gen_benchmarks {
