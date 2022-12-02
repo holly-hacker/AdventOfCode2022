@@ -1,3 +1,4 @@
+#![feature(array_chunks)]
 #![allow(
     clippy::wildcard_imports,
     clippy::missing_const_for_fn,

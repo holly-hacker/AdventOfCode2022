@@ -20,5 +20,5 @@ pgo feature:
     cargo pgo optimize bench -- --bench criterion --no-default-features --features {{feature}}
 
 cachegrind feature:
-    {{ if os_family() == "windows" { error("cachegrind is not available on windows") } else {""} }}
+    {{ if os_family() == "windows" { error("valgrind is not available on windows") } else {""} }}
     cargo bench --bench iai --no-default-features --features {{feature}}
