@@ -74,17 +74,12 @@ fn calculate_score(other: u8, mine: u8) -> usize {
     // rock=0, paper=1, scissor=2
     let win_mod = match (other + 3 - mine) % 3 {
         0 => 3, // same play, draw
-        2 => 6, // one more, meaning win
         1 => 0, // one less, meaning loss
-        _ => unreachable!(),
+        _ => 6, // one more, meaning win
     };
 
-    let play_mod = match mine {
-        0 => 1, // rock
-        1 => 2, // paper
-        2 => 3, // scissor
-        _ => unreachable!(),
-    };
+    // this could be a match but using branchless code is more optimal
+    let play_mod = (mine + 1) as usize;
 
     play_mod + win_mod
 }

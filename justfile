@@ -16,8 +16,8 @@ install-pgo:
     cargo install cargo-pgo
 
 pgo feature:
-    cargo pgo bench -- --bench criterion --no-default-features --features {{feature}}
-    cargo pgo optimize bench -- --bench criterion --no-default-features --features {{feature}}
+    cargo pgo bench -- --bench criterion --no-default-features --features {{feature}} -- "real"
+    cargo pgo optimize bench -- --bench criterion --no-default-features --features {{feature}} -- "real"
 
 cachegrind feature:
     {{ if os_family() == "windows" { error("valgrind is not available on windows") } else {""} }}
