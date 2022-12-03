@@ -11,24 +11,23 @@ impl AocDay<usize> for Day {
         input
             .split('\n')
             .map(|l| {
+                debug_assert_eq!(l.len() % 2, 0);
+
                 let bytes = l.as_bytes();
                 let len = bytes.len();
-                debug_assert_eq!(l.len() % 2, 0);
 
                 let half_1 = &bytes[..len / 2];
                 let half_2 = &bytes[len / 2..];
                 debug_assert_eq!(half_1.len(), half_2.len());
 
-                let mut used = 0u64;
-                half_1
-                    .iter()
-                    .filter(|&b| {
-                        let bit = 1 << (b & 0b0011_1111); // max value is 63
-                        let contains = (used & bit == 0) && half_2.contains(b);
-                        used |= bit;
-                        contains
-                    })
-                    .map(|&c| get_score(c))
+                let bits_1 = half_1.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+                let bits_2 = half_2.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+
+                let all_bits = bits_1 & bits_2;
+
+                (0..64)
+                    .filter(|&i| (all_bits & 1 << i) != 0)
+                    .map(|i| get_score(i | 0b0100_0000))
                     .sum::<usize>()
             })
             .sum()
@@ -43,29 +42,37 @@ impl AocDayFull<usize> for Day {
             .map(|l| {
                 let [half_1, half_2, half_3] = [l[0].as_bytes(), l[1].as_bytes(), l[2].as_bytes()];
 
-                let mut used = 0u64;
-                half_1
-                    .iter()
-                    .filter(|&b| {
-                        let bit = 1 << (b & 0b0011_1111); // max value is 63
-                        let contains =
-                            (used & bit == 0) && half_2.contains(b) && half_3.contains(b);
-                        used |= bit;
-                        contains
-                    })
-                    .map(|&c| get_score(c))
+                let bits_1 = half_1.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+                let bits_2 = half_2.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+                let bits_3 = half_3.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+
+                let all_bits = bits_1 & bits_2 & bits_3;
+
+                (0..64)
+                    .filter(|&i| (all_bits & 1 << i) != 0)
+                    .map(|i| get_score(i | 0b0100_0000))
                     .sum::<usize>()
             })
             .sum()
     }
 }
 
-fn get_score(b: u8) -> usize {
-    (match b {
-        b'a'..=b'z' => b - b'a' + 1,
-        b'A'..=b'Z' => b - b'A' + 1 + 26,
-        _ => panic!(),
-    }) as usize
+// A: 0b0100_0000
+// a: 0b0110_0000
+/// Calculate the score/priority of a character.
+/// ```
+/// use aoc2022::day03::get_score;
+/// assert_eq!(get_score(b'a'), 1);
+/// assert_eq!(get_score(b'z'), 26);
+/// assert_eq!(get_score(b'A'), 27);
+/// assert_eq!(get_score(b'Z'), 52);
+/// ```
+pub fn get_score(b: u8) -> usize {
+    ((b & 0x1F) + (((!b & 0b0010_0000) >> 5) * 26)) as usize
+}
+
+fn to_bit(b: u8) -> u64 {
+    1 << (b & 0b0011_1111)
 }
 
 #[test]

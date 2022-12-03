@@ -3,6 +3,7 @@
 #![allow(
     clippy::wildcard_imports,
     clippy::missing_const_for_fn,
+    clippy::must_use_candidate,
     clippy::unreadable_literal
 )]
 
