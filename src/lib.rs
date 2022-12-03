@@ -57,7 +57,7 @@ pub trait AocDay<T: Display> {
             time
         );
         let (output, time) = run_timed(|| Self::calculate_silver(Self::INPUT_REAL));
-        println!("Day {}, silver: {} ({:?})", Self::DAY, output, time);
+        println!("Day {}, silver: {output} ({time:?})", Self::DAY);
 
         println!("Day {} has no gold implementation", Self::DAY);
     }
@@ -75,12 +75,12 @@ pub trait AocDayFull<T: Display>: AocDay<T> {
             time
         );
         let (output, time) = run_timed(|| Self::calculate_silver(Self::INPUT_REAL));
-        println!("Day {}, silver: {} ({:?})", Self::DAY, output, time);
+        println!("Day {}, silver: {output} ({time:?})", Self::DAY);
 
         let (output, time) = run_timed(|| Self::calculate_gold(Self::INPUT_SAMPLE));
-        println!("Day {}, gold (sample): {} ({:?})", Self::DAY, output, time);
+        println!("Day {}, gold (sample): {output} ({time:?})", Self::DAY);
         let (output, time) = run_timed(|| Self::calculate_gold(Self::INPUT_REAL));
-        println!("Day {}, gold: {} ({:?})", Self::DAY, output, time);
+        println!("Day {}, gold: {output} ({time:?})", Self::DAY);
     }
 
     fn calculate_gold(input: &str) -> T;
