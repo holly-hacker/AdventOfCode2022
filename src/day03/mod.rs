@@ -74,20 +74,20 @@ fn get_score(b: u8) -> usize {
 
 #[test]
 fn test_silver_sample() {
-    // TODO: 157
+    assert_eq!(Day::calculate_silver(Day::INPUT_SAMPLE), 157)
 }
 
 #[test]
 fn test_silver_real() {
-    // TODO: 7980
+    assert_eq!(Day::calculate_silver(Day::INPUT_REAL), 7980)
 }
 
 #[test]
 fn test_gold_sample() {
-    // TODO: 70
+    assert_eq!(Day::calculate_gold(Day::INPUT_SAMPLE), 70)
 }
 
 #[test]
 fn test_gold_real() {
-    // TODO: 2881
+    assert_eq!(Day::calculate_gold(Day::INPUT_REAL), 2881)
 }
