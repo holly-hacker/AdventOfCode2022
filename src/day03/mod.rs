@@ -20,13 +20,18 @@ impl AocDay<usize> for Day {
                 let half_2 = &bytes[len / 2..];
                 debug_assert_eq!(half_1.len(), half_2.len());
 
-                let bits_1 = half_1.iter().fold(0u64, |acc, &e| acc | to_bit(e));
-                let bits_2 = half_2.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+                // you can do these separately, but zipping them gives a tiny performance boost (3-4%).
+                let (bits_1, bits_2) = half_1
+                    .iter()
+                    .zip(half_2.iter())
+                    .fold((0u64, 0u64), |(a1, a2), (&e1, &e2)| {
+                        (a1 | to_bit(e1), a2 | to_bit(e2))
+                    });
 
-                let all_bits = bits_1 & bits_2;
+                let shared_bits = bits_1 & bits_2;
 
                 (0..64)
-                    .filter(|&i| (all_bits & 1 << i) != 0)
+                    .filter(|&i| (shared_bits & 1 << i) != 0)
                     .map(|i| get_score(i | 0b0100_0000))
                     .sum::<usize>()
             })
@@ -40,16 +45,17 @@ impl AocDayFull<usize> for Day {
             .split('\n')
             .array_chunks::<3>()
             .map(|l| {
-                let [half_1, half_2, half_3] = [l[0].as_bytes(), l[1].as_bytes(), l[2].as_bytes()];
+                let [bytes_1, bytes_2, bytes_3] =
+                    [l[0].as_bytes(), l[1].as_bytes(), l[2].as_bytes()];
 
-                let bits_1 = half_1.iter().fold(0u64, |acc, &e| acc | to_bit(e));
-                let bits_2 = half_2.iter().fold(0u64, |acc, &e| acc | to_bit(e));
-                let bits_3 = half_3.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+                let bits_1 = bytes_1.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+                let bits_2 = bytes_2.iter().fold(0u64, |acc, &e| acc | to_bit(e));
+                let bits_3 = bytes_3.iter().fold(0u64, |acc, &e| acc | to_bit(e));
 
-                let all_bits = bits_1 & bits_2 & bits_3;
+                let shared_bits = bits_1 & bits_2 & bits_3;
 
                 (0..64)
-                    .filter(|&i| (all_bits & 1 << i) != 0)
+                    .filter(|&i| (shared_bits & 1 << i) != 0)
                     .map(|i| get_score(i | 0b0100_0000))
                     .sum::<usize>()
             })
