@@ -31,8 +31,7 @@ impl AocDay<usize> for Day {
                 let shared_bits = bits_1 & bits_2;
 
                 (0..64)
-                    .filter(|&i| (shared_bits & 1 << i) != 0)
-                    .map(|i| get_score(i | 0b0100_0000))
+                    .map(|i| ((shared_bits >> i) & 1) as usize * get_score(i | 0b0100_0000))
                     .sum::<usize>()
             })
             .sum()
@@ -55,8 +54,7 @@ impl AocDayFull<usize> for Day {
                 let shared_bits = bits_1 & bits_2 & bits_3;
 
                 (0..64)
-                    .filter(|&i| (shared_bits & 1 << i) != 0)
-                    .map(|i| get_score(i | 0b0100_0000))
+                    .map(|i| ((shared_bits >> i) & 1) as usize * get_score(i | 0b0100_0000))
                     .sum::<usize>()
             })
             .sum()
@@ -74,7 +72,7 @@ impl AocDayFull<usize> for Day {
 /// assert_eq!(get_score(b'Z'), 52);
 /// ```
 pub fn get_score(b: u8) -> usize {
-    ((b & 0x1F) + (((!b & 0b0010_0000) >> 5) * 26)) as usize
+    ((b & 0x1F) + (((!b >> 5) & 1) * 26)) as usize
 }
 
 fn to_bit(b: u8) -> u64 {
