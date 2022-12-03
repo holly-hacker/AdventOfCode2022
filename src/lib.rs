@@ -1,4 +1,5 @@
 #![feature(array_chunks)]
+#![feature(iter_array_chunks)]
 #![allow(
     clippy::wildcard_imports,
     clippy::missing_const_for_fn,
@@ -29,6 +30,7 @@ macro_rules! register_days {
 register_days! {
     01 gold,
     02 gold,
+    03 gold,
 }
 
 fn run_timed<T, F>(fun: F) -> (T, std::time::Duration)
