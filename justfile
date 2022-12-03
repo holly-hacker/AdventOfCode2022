@@ -8,7 +8,7 @@ check:
     cargo clippy --benches --tests -- --warn clippy::nursery --warn clippy::pedantic
 
 bench feature:
-    cargo test --no-default-features --features {{feature}}
+    cargo test --no-default-features --features {{feature}} -q
     cargo bench --bench criterion --no-default-features --features {{feature}}
 
 install-pgo:
@@ -21,4 +21,5 @@ pgo feature:
 
 cachegrind feature:
     {{ if os_family() == "windows" { error("valgrind is not available on windows") } else {""} }}
+    cargo test --no-default-features --features {{feature}} -q
     cargo bench --bench iai --no-default-features --features {{feature}}

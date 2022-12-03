@@ -19,14 +19,13 @@ impl AocDay<usize> for Day {
                 let half_2 = &bytes[len / 2..];
                 debug_assert_eq!(half_1.len(), half_2.len());
 
-                let mut used = vec![];
+                let mut used = 0u64;
                 half_1
-                    .into_iter()
-                    .filter(|b| {
-                        let contains = half_2.contains(b) && !used.contains(b);
-                        if contains {
-                            used.push(b);
-                        }
+                    .iter()
+                    .filter(|&b| {
+                        let bit = 1 << (b & 0b0011_1111); // max value is 63
+                        let contains = (used & bit == 0) && half_2.contains(b);
+                        used |= bit;
                         contains
                     })
                     .map(|&c| get_score(c))
@@ -42,19 +41,16 @@ impl AocDayFull<usize> for Day {
             .split('\n')
             .array_chunks::<3>()
             .map(|l| {
-                let [half_1, half_2, half_3] = l;
-                let [half_1, half_2, half_3] =
-                    [half_1.as_bytes(), half_2.as_bytes(), half_3.as_bytes()];
+                let [half_1, half_2, half_3] = [l[0].as_bytes(), l[1].as_bytes(), l[2].as_bytes()];
 
-                let mut used = vec![];
+                let mut used = 0u64;
                 half_1
-                    .into_iter()
-                    .filter(|b| {
+                    .iter()
+                    .filter(|&b| {
+                        let bit = 1 << (b & 0b0011_1111); // max value is 63
                         let contains =
-                            half_2.contains(b) && half_3.contains(b) && !used.contains(b);
-                        if contains {
-                            used.push(b);
-                        }
+                            (used & bit == 0) && half_2.contains(b) && half_3.contains(b);
+                        used |= bit;
                         contains
                     })
                     .map(|&c| get_score(c))
@@ -74,20 +70,20 @@ fn get_score(b: u8) -> usize {
 
 #[test]
 fn test_silver_sample() {
-    assert_eq!(Day::calculate_silver(Day::INPUT_SAMPLE), 157)
+    assert_eq!(Day::calculate_silver(Day::INPUT_SAMPLE), 157);
 }
 
 #[test]
 fn test_silver_real() {
-    assert_eq!(Day::calculate_silver(Day::INPUT_REAL), 7980)
+    assert_eq!(Day::calculate_silver(Day::INPUT_REAL), 7980);
 }
 
 #[test]
 fn test_gold_sample() {
-    assert_eq!(Day::calculate_gold(Day::INPUT_SAMPLE), 70)
+    assert_eq!(Day::calculate_gold(Day::INPUT_SAMPLE), 70);
 }
 
 #[test]
 fn test_gold_real() {
-    assert_eq!(Day::calculate_gold(Day::INPUT_REAL), 2881)
+    assert_eq!(Day::calculate_gold(Day::INPUT_REAL), 2881);
 }
