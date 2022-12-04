@@ -1,3 +1,5 @@
+use crate::utils::fast_parse_int;
+
 use super::*;
 
 pub struct Day;
@@ -13,22 +15,17 @@ impl AocDay<usize> for Day {
         input
             .split('\n')
             .map(|l| {
-                let (range_1, range_2) = l.split_once(',').unwrap();
-                let (range_1_1, range_1_2) = range_1.split_once('-').unwrap();
-                let (range_2_1, range_2_2) = range_2.split_once('-').unwrap();
+                let (range_1_1, rest) = l.split_once('-').unwrap();
+                let (range_1_2, rest) = rest.split_once(',').unwrap();
+                let (range_2_1, range_2_2) = rest.split_once('-').unwrap();
 
-                let range_1: (usize, usize) =
-                    (range_1_1.parse().unwrap(), range_1_2.parse().unwrap());
-                let range_2: (usize, usize) =
-                    (range_2_1.parse().unwrap(), range_2_2.parse().unwrap());
+                let range_1_start = fast_parse_int(range_1_1);
+                let range_1_end = fast_parse_int(range_1_2);
+                let range_2_start = fast_parse_int(range_2_1);
+                let range_2_end = fast_parse_int(range_2_2);
 
-                if range_1.0 >= range_2.0 && range_1.1 <= range_2.1 {
-                    1
-                } else if range_2.0 >= range_1.0 && range_2.1 <= range_1.1 {
-                    1
-                } else {
-                    0
-                }
+                usize::from(range_1_start >= range_2_start && range_1_end <= range_2_end)
+                    | usize::from(range_2_start >= range_1_start && range_2_end <= range_1_end)
             })
             .sum()
     }
@@ -39,30 +36,16 @@ impl AocDayFull<usize> for Day {
         input
             .split('\n')
             .map(|l| {
-                let (range_1, range_2) = l.split_once(',').unwrap();
-                let (range_1_1, range_1_2) = range_1.split_once('-').unwrap();
-                let (range_2_1, range_2_2) = range_2.split_once('-').unwrap();
+                let (range_1_1, rest) = l.split_once('-').unwrap();
+                let (range_1_2, rest) = rest.split_once(',').unwrap();
+                let (range_2_1, range_2_2) = rest.split_once('-').unwrap();
 
-                let range_1: (usize, usize) =
-                    (range_1_1.parse().unwrap(), range_1_2.parse().unwrap());
-                let range_2: (usize, usize) =
-                    (range_2_1.parse().unwrap(), range_2_2.parse().unwrap());
+                let range_1_start = fast_parse_int(range_1_1);
+                let range_1_end = fast_parse_int(range_1_2);
+                let range_2_start = fast_parse_int(range_2_1);
+                let range_2_end = fast_parse_int(range_2_2);
 
-                if range_1.0 >= range_2.0 && range_1.0 <= range_2.1 {
-                    // range_1.0 is within range_2
-                    1
-                } else if range_1.1 >= range_2.0 && range_1.1 <= range_2.1 {
-                    // range_1.1 is within range_2
-                    1
-                } else if range_2.0 >= range_1.0 && range_2.0 <= range_1.1 {
-                    // range_2.0 is within range_1
-                    1
-                } else if range_2.1 >= range_1.0 && range_2.1 <= range_1.1 {
-                    // range_2.1 is within range_1
-                    1
-                } else {
-                    0
-                }
+                usize::from(!(range_2_end < range_1_start || range_2_start > range_1_end))
             })
             .sum()
     }

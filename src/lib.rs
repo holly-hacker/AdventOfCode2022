@@ -1,6 +1,7 @@
 #![feature(array_chunks)]
 #![feature(iter_array_chunks)]
 #![allow(
+    clippy::cast_possible_truncation,
     clippy::wildcard_imports,
     clippy::missing_const_for_fn,
     clippy::must_use_candidate,
