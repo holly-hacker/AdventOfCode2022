@@ -1,4 +1,4 @@
-use crate::utils::fast_parse_int;
+use crate::utils::{fast_parse_int_from_bytes, split_once};
 
 use super::*;
 
@@ -12,42 +12,52 @@ impl AocDay<usize> for Day {
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
     fn calculate_silver(input: &str) -> usize {
-        input
-            .split('\n')
-            .map(|l| {
-                let (range_1_1, rest) = l.split_once('-').unwrap();
-                let (range_1_2, rest) = rest.split_once(',').unwrap();
-                let (range_2_1, range_2_2) = rest.split_once('-').unwrap();
+        let mut input = input.as_bytes();
+        let mut sum = 0;
+        while !input.is_empty() {
+            let (range_1_1, range_1_2, range_2_1, range_2_2);
 
-                let range_1_start = fast_parse_int(range_1_1);
-                let range_1_end = fast_parse_int(range_1_2);
-                let range_2_start = fast_parse_int(range_2_1);
-                let range_2_end = fast_parse_int(range_2_2);
+            (range_1_1, input) = split_once(input, b'-').unwrap();
+            let range_1_start = fast_parse_int_from_bytes(range_1_1);
 
-                usize::from(range_1_start >= range_2_start && range_1_end <= range_2_end)
-                    | usize::from(range_2_start >= range_1_start && range_2_end <= range_1_end)
-            })
-            .sum()
+            (range_1_2, input) = split_once(input, b',').unwrap();
+            let range_1_end = fast_parse_int_from_bytes(range_1_2);
+
+            (range_2_1, input) = split_once(input, b'-').unwrap();
+            let range_2_start = fast_parse_int_from_bytes(range_2_1);
+
+            (range_2_2, input) = split_once(input, b'\n').unwrap_or((input, &[]));
+            let range_2_end = fast_parse_int_from_bytes(range_2_2);
+
+            sum += usize::from(range_1_start >= range_2_start && range_1_end <= range_2_end)
+                | usize::from(range_2_start >= range_1_start && range_2_end <= range_1_end);
+        }
+        sum
     }
 }
 
 impl AocDayFull<usize> for Day {
     fn calculate_gold(input: &str) -> usize {
-        input
-            .split('\n')
-            .map(|l| {
-                let (range_1_1, rest) = l.split_once('-').unwrap();
-                let (range_1_2, rest) = rest.split_once(',').unwrap();
-                let (range_2_1, range_2_2) = rest.split_once('-').unwrap();
+        let mut input = input.as_bytes();
+        let mut sum = 0;
+        while !input.is_empty() {
+            let (range_1_1, range_1_2, range_2_1, range_2_2);
 
-                let range_1_start = fast_parse_int(range_1_1);
-                let range_1_end = fast_parse_int(range_1_2);
-                let range_2_start = fast_parse_int(range_2_1);
-                let range_2_end = fast_parse_int(range_2_2);
+            (range_1_1, input) = split_once(input, b'-').unwrap();
+            let range_1_start = fast_parse_int_from_bytes(range_1_1);
 
-                usize::from(!(range_2_end < range_1_start || range_2_start > range_1_end))
-            })
-            .sum()
+            (range_1_2, input) = split_once(input, b',').unwrap();
+            let range_1_end = fast_parse_int_from_bytes(range_1_2);
+
+            (range_2_1, input) = split_once(input, b'-').unwrap();
+            let range_2_start = fast_parse_int_from_bytes(range_2_1);
+
+            (range_2_2, input) = split_once(input, b'\n').unwrap_or((input, &[]));
+            let range_2_end = fast_parse_int_from_bytes(range_2_2);
+
+            sum += usize::from(!(range_2_end < range_1_start || range_2_start > range_1_end));
+        }
+        sum
     }
 }
 
