@@ -30,9 +30,8 @@ impl AocDay<usize> for Day {
 
                 let shared_bits = bits_1 & bits_2;
 
-                (0..64)
-                    .map(|i| ((shared_bits >> i) & 1) as usize * get_score(i | 0b0100_0000))
-                    .sum::<usize>()
+                // use the index of the lowest (and only) bit
+                get_score(shared_bits.trailing_zeros() as u8)
             })
             .sum()
     }
@@ -53,9 +52,8 @@ impl AocDayFull<usize> for Day {
 
                 let shared_bits = bits_1 & bits_2 & bits_3;
 
-                (0..64)
-                    .map(|i| ((shared_bits >> i) & 1) as usize * get_score(i | 0b0100_0000))
-                    .sum::<usize>()
+                // use the index of the lowest (and only) bit
+                get_score(shared_bits.trailing_zeros() as u8)
             })
             .sum()
     }
