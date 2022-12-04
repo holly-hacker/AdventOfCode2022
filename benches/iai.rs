@@ -52,5 +52,5 @@ macro_rules! gen_benchmarks {
 }
 
 gen_benchmarks! {
-    01, 02, 03,
+    01, 02, 03, 04,
 }
