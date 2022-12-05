@@ -8,7 +8,7 @@
     clippy::unreadable_literal
 )]
 
-use std::fmt::Display;
+use std::fmt::Debug;
 
 mod utils;
 
@@ -34,6 +34,7 @@ register_days! {
     02 gold,
     03 gold,
     04 gold,
+    05 gold,
 }
 
 fn run_timed<T, F>(fun: F) -> (T, std::time::Duration)
@@ -46,21 +47,16 @@ where
     (ret, elapsed)
 }
 
-pub trait AocDay<T: Display> {
+pub trait AocDay<T: Debug> {
     const DAY: u32;
     const INPUT_SAMPLE: &'static str;
     const INPUT_REAL: &'static str;
 
     fn execute_silver() {
         let (output, time) = run_timed(|| Self::calculate_silver(Self::INPUT_SAMPLE));
-        println!(
-            "Day {}, silver (sample): {} ({:?})",
-            Self::DAY,
-            output,
-            time
-        );
+        println!("Day {}, silver (sample): {output:?} ({time:?})", Self::DAY,);
         let (output, time) = run_timed(|| Self::calculate_silver(Self::INPUT_REAL));
-        println!("Day {}, silver: {output} ({time:?})", Self::DAY);
+        println!("Day {}, silver: {output:?} ({time:?})", Self::DAY);
 
         println!("Day {} has no gold implementation", Self::DAY);
     }
@@ -68,22 +64,17 @@ pub trait AocDay<T: Display> {
     fn calculate_silver(input: &str) -> T;
 }
 
-pub trait AocDayFull<T: Display>: AocDay<T> {
+pub trait AocDayFull<T: Debug>: AocDay<T> {
     fn execute() {
         let (output, time) = run_timed(|| Self::calculate_silver(Self::INPUT_SAMPLE));
-        println!(
-            "Day {}, silver (sample): {} ({:?})",
-            Self::DAY,
-            output,
-            time
-        );
+        println!("Day {}, silver (sample): {output:?} ({time:?})", Self::DAY);
         let (output, time) = run_timed(|| Self::calculate_silver(Self::INPUT_REAL));
-        println!("Day {}, silver: {output} ({time:?})", Self::DAY);
+        println!("Day {}, silver: {output:?} ({time:?})", Self::DAY);
 
         let (output, time) = run_timed(|| Self::calculate_gold(Self::INPUT_SAMPLE));
-        println!("Day {}, gold (sample): {output} ({time:?})", Self::DAY);
+        println!("Day {}, gold (sample): {output:?} ({time:?})", Self::DAY);
         let (output, time) = run_timed(|| Self::calculate_gold(Self::INPUT_REAL));
-        println!("Day {}, gold: {output} ({time:?})", Self::DAY);
+        println!("Day {}, gold: {output:?} ({time:?})", Self::DAY);
     }
 
     fn calculate_gold(input: &str) -> T;
