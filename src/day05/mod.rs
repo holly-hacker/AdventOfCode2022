@@ -17,23 +17,16 @@ impl AocDay<String> for Day {
         (header, bytes) = parse_header(bytes);
 
         while !bytes.is_empty() {
-            let mut buf;
-
             debug_assert_eq!(&bytes[.."move ".len()], b"move ");
             bytes = &bytes["move ".len()..];
 
+            let buf;
             (buf, bytes) = split_once_2(bytes, b' ');
             let count = fast_parse_int_from_bytes(buf);
+            let from = (bytes[6] - b'0') as usize;
+            let to = (bytes[11] - b'0') as usize;
 
-            bytes = &bytes[" from ".len()..];
-
-            (buf, bytes) = split_once_2(bytes, b' ');
-            let from = fast_parse_int_from_bytes(buf);
-
-            bytes = &bytes[" to ".len()..];
-
-            (buf, bytes) = split_once_2(bytes, b'\n');
-            let to = fast_parse_int_from_bytes(buf);
+            bytes = &bytes[" from x to y".len()..];
 
             if !bytes.is_empty() {
                 bytes = &bytes["\n".len()..];
@@ -62,23 +55,16 @@ impl AocDayFull<String> for Day {
         (header, bytes) = parse_header(bytes);
 
         while !bytes.is_empty() {
-            let mut buf;
-
             debug_assert_eq!(&bytes[.."move ".len()], b"move ");
             bytes = &bytes["move ".len()..];
 
+            let buf;
             (buf, bytes) = split_once_2(bytes, b' ');
             let count = fast_parse_int_from_bytes(buf);
+            let from = (bytes[6] - b'0') as usize;
+            let to = (bytes[11] - b'0') as usize;
 
-            bytes = &bytes[" from ".len()..];
-
-            (buf, bytes) = split_once_2(bytes, b' ');
-            let from = fast_parse_int_from_bytes(buf);
-
-            bytes = &bytes[" to ".len()..];
-
-            (buf, bytes) = split_once_2(bytes, b'\n');
-            let to = fast_parse_int_from_bytes(buf);
+            bytes = &bytes[" from x to y".len()..];
 
             if !bytes.is_empty() {
                 bytes = &bytes["\n".len()..];
@@ -102,7 +88,7 @@ impl AocDayFull<String> for Day {
     }
 }
 
-fn parse_header(bytes: &[u8]) -> (ArrayVec<[ArrayVec<[u8; 64]>; 10]>, &[u8]) {
+fn parse_header(bytes: &[u8]) -> (ArrayVec<[ArrayVec<[u8; 64]>; 9]>, &[u8]) {
     let line_len = bytes.iter().position(|&x| x == b'\n').unwrap() + 1;
     let bucket_count = (line_len) / 4;
 
@@ -115,7 +101,7 @@ fn parse_header(bytes: &[u8]) -> (ArrayVec<[ArrayVec<[u8; 64]>; 10]>, &[u8]) {
 
     let total_len = (bucket_capacity + 1) * line_len + 1;
 
-    let mut buckets = ArrayVec::<[ArrayVec<[u8; 64]>; 10]>::new();
+    let mut buckets = ArrayVec::<[ArrayVec<[u8; 64]>; 9]>::new();
     for _ in 0..bucket_count {
         buckets.push(ArrayVec::<[u8; 64]>::new());
     }
