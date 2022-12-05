@@ -36,6 +36,25 @@ pub fn split_once(haystack: &[u8], delimiter: u8) -> Option<(&[u8], &[u8])> {
     }
 }
 
+/// A variant of [`split_once`] that stops at either the first occurance of the delimiter, or at
+/// the end of the string.
+#[inline]
+pub fn split_once_2(haystack: &[u8], delimiter: u8) -> (&[u8], &[u8]) {
+    // TODO: position instead?
+    // haystack.split_at(haystack.iter().take_while(|&&b| b != delimiter).count())
+    let start = haystack
+        .iter()
+        .position(|b| *b == delimiter)
+        .unwrap_or(haystack.len());
+    // SAFETY: `position` is known to return valid indices. `haystack.len()` would return an empty slice.
+    unsafe {
+        (
+            haystack.get_unchecked(..start),
+            haystack.get_unchecked(start..),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

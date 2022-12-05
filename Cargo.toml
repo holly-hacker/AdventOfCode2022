@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 paste = "1"
+tinyvec = { version = "1.6.0", features = ["rustc_1_57", "std"] }
 
 [dev-dependencies]
 cfg-if = "1"

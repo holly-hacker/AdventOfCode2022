@@ -1,4 +1,6 @@
-use crate::utils::fast_parse_int_from_bytes;
+use tinyvec::{ArrayVec, TinyVec};
+
+use crate::utils::{fast_parse_int_from_bytes, split_once_2};
 
 use super::*;
 
@@ -10,21 +12,33 @@ impl AocDay<String> for Day {
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
     fn calculate_silver(input: &str) -> String {
-        let (header, instructions) = input.split_once("\n\n").unwrap();
+        let mut bytes = input.as_bytes();
+        let mut header;
+        (header, bytes) = parse_header(bytes);
 
-        let mut header = parse_header(header);
+        while !bytes.is_empty() {
+            let mut buf;
 
-        for line in instructions.split('\n') {
             // TODO: can be a lot more optimal!
-            let mut split_iter = line.split(' ');
-            split_iter.next();
-            let count = fast_parse_int_from_bytes(split_iter.next().unwrap().as_bytes());
-            split_iter.next();
-            let from = fast_parse_int_from_bytes(split_iter.next().unwrap().as_bytes());
-            split_iter.next();
-            let to = fast_parse_int_from_bytes(split_iter.next().unwrap().as_bytes());
+            debug_assert_eq!(&bytes[.."move ".len()], b"move ");
+            bytes = &bytes["move ".len()..];
 
-            debug_assert!(split_iter.next().is_none());
+            (buf, bytes) = split_once_2(bytes, b' ');
+            let count = fast_parse_int_from_bytes(buf);
+
+            bytes = &bytes[" from ".len()..];
+
+            (buf, bytes) = split_once_2(bytes, b' ');
+            let from = fast_parse_int_from_bytes(buf);
+
+            bytes = &bytes[" to ".len()..];
+
+            (buf, bytes) = split_once_2(bytes, b'\n');
+            let to = fast_parse_int_from_bytes(buf);
+
+            if !bytes.is_empty() {
+                bytes = &bytes["\n".len()..];
+            }
 
             for _ in 0..count {
                 let item = header[from - 1].pop().unwrap();
@@ -44,27 +58,39 @@ impl AocDay<String> for Day {
 
 impl AocDayFull<String> for Day {
     fn calculate_gold(input: &str) -> String {
-        let (header, instructions) = input.split_once("\n\n").unwrap();
+        let mut bytes = input.as_bytes();
+        let mut header;
+        (header, bytes) = parse_header(bytes);
 
-        let mut header = parse_header(header);
+        while !bytes.is_empty() {
+            let mut buf;
 
-        for line in instructions.split('\n') {
             // TODO: can be a lot more optimal!
-            let mut split_iter = line.split(' ');
-            split_iter.next();
-            let count = fast_parse_int_from_bytes(split_iter.next().unwrap().as_bytes());
-            split_iter.next();
-            let from = fast_parse_int_from_bytes(split_iter.next().unwrap().as_bytes());
-            split_iter.next();
-            let to = fast_parse_int_from_bytes(split_iter.next().unwrap().as_bytes());
+            debug_assert_eq!(&bytes[.."move ".len()], b"move ");
+            bytes = &bytes["move ".len()..];
 
-            debug_assert!(split_iter.next().is_none());
+            (buf, bytes) = split_once_2(bytes, b' ');
+            let count = fast_parse_int_from_bytes(buf);
 
-            // TODO: very unoptimal to_vec call!
+            bytes = &bytes[" from ".len()..];
+
+            (buf, bytes) = split_once_2(bytes, b' ');
+            let from = fast_parse_int_from_bytes(buf);
+
+            bytes = &bytes[" to ".len()..];
+
+            (buf, bytes) = split_once_2(bytes, b'\n');
+            let to = fast_parse_int_from_bytes(buf);
+
+            if !bytes.is_empty() {
+                bytes = &bytes["\n".len()..];
+            }
+
             let from_bucket = &mut header[from - 1];
             let from_bucket_len = from_bucket.len();
-            let from_slice = from_bucket[from_bucket_len - count..from_bucket_len].to_vec();
-            from_bucket.truncate(from_bucket_len - count);
+            let from_slice = from_bucket
+                .drain(from_bucket_len - count..from_bucket_len)
+                .collect::<TinyVec<[u8; 24]>>();
             header[to - 1].extend_from_slice(&from_slice);
         }
 
@@ -78,17 +104,28 @@ impl AocDayFull<String> for Day {
     }
 }
 
-fn parse_header(header: &str) -> Vec<Vec<u8>> {
-    let bucket_count = (header.split_once('\n').unwrap().0.len() + 1) / 4;
+fn parse_header(bytes: &[u8]) -> (ArrayVec<[ArrayVec<[u8; 64]>; 10]>, &[u8]) {
+    let line_len = bytes.iter().position(|&x| x == b'\n').unwrap() + 1;
+    let bucket_count = (line_len) / 4;
 
-    let capacity = header.split('\n').count() - 1;
+    let bucket_capacity = bytes
+        .iter()
+        .step_by(line_len)
+        .position(|&c| c == b'\n')
+        .unwrap()
+        - 1;
 
-    let mut buckets = vec![Vec::<u8>::with_capacity(capacity); bucket_count];
+    let total_len = (bucket_capacity + 1) * line_len + 1;
 
-    for line in header.split('\n').rev().skip(1) {
-        let bytes = line.as_bytes();
+    let mut buckets = ArrayVec::<[ArrayVec<[u8; 64]>; 10]>::new();
+    for _ in 0..bucket_count {
+        buckets.push(ArrayVec::<[u8; 64]>::new());
+    }
+
+    for line_num in (0..bucket_capacity).rev() {
+        let offset = line_num * line_len;
         for i in 0..bucket_count {
-            let index = i * 4 + 1;
+            let index = offset + i * 4 + 1;
             let char = bytes[index];
 
             if char != b' ' {
@@ -103,7 +140,7 @@ fn parse_header(header: &str) -> Vec<Vec<u8>> {
         }
     }
 
-    buckets
+    (buckets, &bytes[total_len..])
 }
 
 #[test]
