@@ -1,4 +1,4 @@
-use tinyvec::{ArrayVec, TinyVec};
+use tinyvec::ArrayVec;
 
 use crate::utils::{fast_parse_int_from_bytes, split_once_2};
 
@@ -19,7 +19,6 @@ impl AocDay<String> for Day {
         while !bytes.is_empty() {
             let mut buf;
 
-            // TODO: can be a lot more optimal!
             debug_assert_eq!(&bytes[.."move ".len()], b"move ");
             bytes = &bytes["move ".len()..];
 
@@ -65,7 +64,6 @@ impl AocDayFull<String> for Day {
         while !bytes.is_empty() {
             let mut buf;
 
-            // TODO: can be a lot more optimal!
             debug_assert_eq!(&bytes[.."move ".len()], b"move ");
             bytes = &bytes["move ".len()..];
 
@@ -90,7 +88,7 @@ impl AocDayFull<String> for Day {
             let from_bucket_len = from_bucket.len();
             let from_slice = from_bucket
                 .drain(from_bucket_len - count..from_bucket_len)
-                .collect::<TinyVec<[u8; 24]>>();
+                .collect::<ArrayVec<[u8; 64]>>();
             header[to - 1].extend_from_slice(&from_slice);
         }
 
