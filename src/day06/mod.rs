@@ -1,3 +1,5 @@
+use std::ops::ControlFlow;
+
 use super::*;
 
 pub struct Day;
@@ -10,17 +12,18 @@ impl AocDay<usize> for Day {
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
     fn calculate_silver(input: &str) -> usize {
-        calculate::<4>(input.as_bytes())
+        calculate_bitwise_skip::<4>(input.as_bytes())
     }
 }
 
 impl AocDayFull<usize> for Day {
     fn calculate_gold(input: &str) -> usize {
-        calculate::<14>(input.as_bytes())
+        calculate_bitwise_skip::<14>(input.as_bytes())
     }
 }
 
-fn calculate<const SIZE: usize>(bytes: &[u8]) -> usize {
+#[allow(unused)]
+fn calculate_bitwise<const SIZE: usize>(bytes: &[u8]) -> usize {
     let mut bit_buffers = [0u32; SIZE];
     let mut bit_buffer_index = 0;
 
@@ -39,10 +42,52 @@ fn calculate<const SIZE: usize>(bytes: &[u8]) -> usize {
     unreachable!("no pattern found");
 }
 
+#[allow(unused)]
+fn calculate_bitwise_skip<const SIZE: usize>(bytes: &[u8]) -> usize {
+    let mut index = SIZE;
+
+    while index < bytes.len() {
+        let cflow = ((index - SIZE)..(index)).rev().try_fold(0, |bits, i| {
+            let new_bit = 1u32 << (bytes[i] - b'a');
+            let new_bits = bits | new_bit;
+            let is_original = bits != new_bits; // whether this is a char we didnt have yet
+            if is_original {
+                ControlFlow::Continue(new_bits)
+            } else {
+                ControlFlow::Break(new_bits)
+            }
+        });
+
+        match cflow {
+            ControlFlow::Continue(x) => return index,
+            ControlFlow::Break(bits) => {
+                let count_to_skip = SIZE - (bits.count_ones() as usize);
+                index += count_to_skip;
+            }
+        }
+    }
+
+    unreachable!("no pattern found");
+}
+
 #[test]
 fn test_day_6_silver_sample() {
     let output = Day::calculate_silver(Day::INPUT_SAMPLE);
     assert_eq!(7, output);
+}
+
+#[test]
+fn test_day_7_silver_extra_samples() {
+    assert_eq!(5, Day::calculate_silver("bvwbjplbgvbhsrlpgdmjqwftvncz"));
+    assert_eq!(6, Day::calculate_silver("nppdvjthqldpwncqszvftbrmjlhg"));
+    assert_eq!(
+        10,
+        Day::calculate_silver("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")
+    );
+    assert_eq!(
+        11,
+        Day::calculate_silver("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")
+    );
 }
 
 #[test]
@@ -55,6 +100,14 @@ fn test_day_6_silver_real() {
 fn test_day_6_gold_sample() {
     let output = Day::calculate_gold(Day::INPUT_SAMPLE);
     assert_eq!(19, output);
+}
+
+#[test]
+fn test_day_7_gold_extra_samples() {
+    assert_eq!(23, Day::calculate_gold("bvwbjplbgvbhsrlpgdmjqwftvncz"));
+    assert_eq!(23, Day::calculate_gold("nppdvjthqldpwncqszvftbrmjlhg"));
+    assert_eq!(29, Day::calculate_gold("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg"));
+    assert_eq!(26, Day::calculate_gold("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw"));
 }
 
 #[test]
