@@ -12,7 +12,7 @@ impl AocDay<usize> for Day {
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
     fn calculate_silver(input: &str) -> usize {
-        calculate_bitwise_skip::<4>(input.as_bytes())
+        calculate_bitwise_golf::<4>(input.as_bytes())
     }
 }
 
@@ -40,6 +40,16 @@ fn calculate_bitwise<const SIZE: usize>(bytes: &[u8]) -> usize {
     }
 
     unreachable!("no pattern found");
+}
+
+#[allow(unused)]
+fn calculate_bitwise_golf<const SIZE: usize>(bytes: &[u8]) -> usize {
+    bytes
+        .array_windows::<SIZE>()
+        .map(|w| w.iter().fold(0, |a, v| a | (1u32 << v - b'a')))
+        .position(|v| v.count_ones() as usize == SIZE)
+        .unwrap()
+        + SIZE
 }
 
 #[allow(unused)]

@@ -1,4 +1,5 @@
 #![feature(array_chunks)]
+#![feature(array_windows)]
 #![feature(iter_array_chunks)]
 #![allow(
     clippy::cast_possible_truncation,
