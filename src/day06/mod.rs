@@ -10,44 +10,33 @@ impl AocDay<usize> for Day {
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
     fn calculate_silver(input: &str) -> usize {
-        let mut bit_buffers = [0u32; 4];
-        let mut bit_buffer_index = 0;
-
-        for b in input.as_bytes() {
-            let bit = 1 << (b - b'a');
-            bit_buffers[bit_buffer_index % 4] = bit;
-
-            bit_buffer_index += 1;
-
-            let sum = bit_buffers[0] | bit_buffers[1] | bit_buffers[2] | bit_buffers[3];
-            if sum.count_ones() == 4 {
-                return bit_buffer_index;
-            }
-        }
-
-        unreachable!("no pattern found");
+        calculate::<4>(input.as_bytes())
     }
 }
 
 impl AocDayFull<usize> for Day {
     fn calculate_gold(input: &str) -> usize {
-        let mut bit_buffers = [0u32; 14];
-        let mut bit_buffer_index = 0;
-
-        for b in input.as_bytes() {
-            let bit = 1 << (b - b'a');
-            bit_buffers[bit_buffer_index % 14] = bit;
-
-            bit_buffer_index += 1;
-
-            let sum = bit_buffers.iter().fold(0, |acc, v| acc | v);
-            if sum.count_ones() == 14 {
-                return bit_buffer_index;
-            }
-        }
-
-        unreachable!("no pattern found");
+        calculate::<14>(input.as_bytes())
     }
+}
+
+fn calculate<const SIZE: usize>(bytes: &[u8]) -> usize {
+    let mut bit_buffers = [0u32; SIZE];
+    let mut bit_buffer_index = 0;
+
+    for b in bytes {
+        let bit = 1 << (b - b'a');
+        bit_buffers[bit_buffer_index % SIZE] = bit;
+
+        bit_buffer_index += 1;
+
+        let sum = bit_buffers.iter().fold(0, |acc, v| acc | v);
+        if sum.count_ones() == SIZE as u32 {
+            return bit_buffer_index;
+        }
+    }
+
+    unreachable!("no pattern found");
 }
 
 #[test]
