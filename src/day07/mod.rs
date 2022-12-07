@@ -1,4 +1,4 @@
-use crate::utils::fast_parse_int;
+use crate::utils::{fast_parse_int_from_bytes, split_once_2};
 
 use super::*;
 
@@ -11,9 +11,9 @@ impl AocDay<usize> for Day {
 
     fn calculate_silver(input: &str) -> usize {
         debug_assert_eq!(input.lines().next(), Some("$ cd /"));
-        let mut iterator = input.lines().skip(1);
-        let (_, ret) = walk_directory_silver(&mut iterator);
-        ret
+        let mut iterator = input.as_bytes().split(|&x| x == b'\n');
+        let (_, sum_under_100000) = walk_directory_silver(&mut iterator);
+        sum_under_100000
     }
 }
 
@@ -22,53 +22,48 @@ impl AocDayFull<usize> for Day {
         const DISK_SIZE_MAX_IN_USE: usize = 70_000_000 - 30_000_000;
 
         debug_assert_eq!(input.lines().next(), Some("$ cd /"));
-        let mut iterator = input.lines().skip(1);
+        let mut iterator = input.as_bytes().split(|&x| x == b'\n');
         let mut vec = vec![];
         let size_in_use = walk_directory_gold(&mut iterator, &mut vec);
+        debug_assert_eq!(*vec.iter().max().unwrap(), size_in_use);
+
         let size_over_limit = size_in_use - DISK_SIZE_MAX_IN_USE;
-        vec.sort();
-        debug_assert_eq!(*vec.last().unwrap(), size_in_use);
-        let partition_point = vec.partition_point(|&x| x < size_over_limit);
-        vec[partition_point - 0]
+        *vec.iter().filter(|&&x| x > size_over_limit).min().unwrap()
     }
 }
 
 fn walk_directory_silver<'a>(
-    remaining_input: &mut impl Iterator<Item = &'a str>,
+    remaining_input: &mut impl Iterator<Item = &'a [u8]>,
 ) -> (usize, usize) {
-    let mut size_this_dir = 0;
-    let mut size_children = 0;
-    let mut sum_over_100000 = 0;
+    let mut my_size = 0;
+    let mut sum_under_100000 = 0;
     loop {
         let Some(line) = remaining_input.next() else {
-            return (size_this_dir + size_children, sum_over_100000);
+            return (my_size, sum_under_100000);
         };
-        debug_assert_ne!(line, "$ cd /");
 
-        if line == "$ ls" {
-            continue;
-        } else if line.starts_with("$ cd ..") {
-            return (size_this_dir + size_children, sum_over_100000);
-        } else if line.starts_with("$ cd") {
-            let (child_size, child_over_100000) = walk_directory_silver(remaining_input);
-            sum_over_100000 += child_over_100000;
-            if child_size <= 100000 {
-                sum_over_100000 += child_size;
+        if line.starts_with(b"$ cd") {
+            if line[5] == b'.' {
+                return (my_size, sum_under_100000);
             }
-            size_children += child_size;
-        } else if line.starts_with("dir") {
-            // do nothing
-        } else {
-            debug_assert!(!line.starts_with("$"));
-            let (size, _) = line.split_once(' ').unwrap();
-            let size = fast_parse_int(size);
-            size_this_dir += size;
+
+            let (child_size, child_over_100000) = walk_directory_silver(remaining_input);
+            sum_under_100000 += child_over_100000;
+            if child_size <= 100000 {
+                sum_under_100000 += child_size;
+            }
+            my_size += child_size;
+        } else if !line.starts_with(b"dir ") && !line.starts_with(b"$") {
+            // file
+            let (size, _) = split_once_2(line, b' ');
+            let size = fast_parse_int_from_bytes(size);
+            my_size += size;
         }
     }
 }
 
 fn walk_directory_gold<'a>(
-    remaining_input: &mut impl Iterator<Item = &'a str>,
+    remaining_input: &mut impl Iterator<Item = &'a [u8]>,
     vec: &mut Vec<usize>,
 ) -> usize {
     let mut my_size = 0;
@@ -77,22 +72,18 @@ fn walk_directory_gold<'a>(
             vec.push(my_size);
             return my_size;
         };
-        debug_assert_ne!(line, "$ cd /");
 
-        if line == "$ ls" {
-            continue;
-        } else if line.starts_with("$ cd ..") {
-            vec.push(my_size);
-            return my_size;
-        } else if line.starts_with("$ cd") {
+        if line.starts_with(b"$ cd") {
+            if line[5] == b'.' {
+                vec.push(my_size);
+                return my_size;
+            }
             let child_size = walk_directory_gold(remaining_input, vec);
             my_size += child_size;
-        } else if line.starts_with("dir") {
-            // do nothing
-        } else {
-            debug_assert!(!line.starts_with("$"));
-            let (size, _) = line.split_once(' ').unwrap();
-            let size = fast_parse_int(size);
+        } else if !line.starts_with(b"dir ") && !line.starts_with(b"$") {
+            // file
+            let (size, _) = split_once_2(line, b' ');
+            let size = fast_parse_int_from_bytes(size);
             my_size += size;
         }
     }
