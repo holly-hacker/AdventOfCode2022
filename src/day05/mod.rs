@@ -128,25 +128,25 @@ fn parse_header(bytes: &[u8]) -> (ArrayVec<[ArrayVec<[u8; 64]>; 9]>, &[u8]) {
 }
 
 #[test]
-fn test_day_5_silver_sample() {
+fn test_silver_sample() {
     let output = Day::calculate_silver(Day::INPUT_SAMPLE);
     assert_eq!("CMZ", output);
 }
 
 #[test]
-fn test_day_5_silver_real() {
+fn test_silver_real() {
     let output = Day::calculate_silver(Day::INPUT_REAL);
     assert_eq!("QGTHFZBHV", output);
 }
 
 #[test]
-fn test_day_5_gold_sample() {
+fn test_gold_sample() {
     let output = Day::calculate_gold(Day::INPUT_SAMPLE);
     assert_eq!("MCD", output);
 }
 
 #[test]
-fn test_day_5_gold_real() {
+fn test_gold_real() {
     let output = Day::calculate_gold(Day::INPUT_REAL);
     assert_eq!("MGDMPSZTM", output);
 }

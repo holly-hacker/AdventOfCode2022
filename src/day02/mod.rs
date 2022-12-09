@@ -85,21 +85,21 @@ fn calculate_score(other: u8, mine: u8) -> usize {
 }
 
 #[test]
-fn test_sample_silver() {
+fn test_silver_sample() {
     assert_eq!(15, Day::calculate_silver(Day::INPUT_SAMPLE));
 }
 
 #[test]
-fn test_real_silver() {
+fn test_silver_real() {
     assert_eq!(13484, Day::calculate_silver(Day::INPUT_REAL));
 }
 
 #[test]
-fn test_sample_gold() {
+fn test_gold_sample() {
     assert_eq!(12, Day::calculate_gold(Day::INPUT_SAMPLE));
 }
 
 #[test]
-fn test_real_gold() {
+fn test_gold_real() {
     assert_eq!(13433, Day::calculate_gold(Day::INPUT_REAL));
 }

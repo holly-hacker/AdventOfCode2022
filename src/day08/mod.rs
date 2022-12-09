@@ -181,25 +181,25 @@ fn parse_input_contiguous(input: &str) -> (Vec<u8>, usize) {
 }
 
 #[test]
-fn test_day_8_silver_sample() {
+fn test_silver_sample() {
     let output = Day::calculate_silver(Day::INPUT_SAMPLE);
     assert_eq!(21, output);
 }
 
 #[test]
-fn test_day_8_silver_real() {
+fn test_silver_real() {
     let output = Day::calculate_silver(Day::INPUT_REAL);
     assert_eq!(1779, output);
 }
 
 #[test]
-fn test_day_8_gold_sample() {
+fn test_gold_sample() {
     let output = Day::calculate_gold(Day::INPUT_SAMPLE);
     assert_eq!(8, output);
 }
 
 #[test]
-fn test_day_8_gold_real() {
+fn test_gold_real() {
     let output = Day::calculate_gold(Day::INPUT_REAL);
     assert_eq!(172224, output);
 }

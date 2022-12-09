@@ -62,21 +62,21 @@ impl AocDayFull<usize> for Day {
 }
 
 #[test]
-fn solve_day_4_silver_sample() {
+fn test_silver_sample() {
     assert_eq!(Day::calculate_silver(Day::INPUT_SAMPLE), 2);
 }
 
 #[test]
-fn solve_day_4_silver_real() {
+fn test_silver_real() {
     assert_eq!(Day::calculate_silver(Day::INPUT_REAL), 456);
 }
 
 #[test]
-fn solve_day_4_gold_sample() {
+fn test_gold_sample() {
     assert_eq!(Day::calculate_gold(Day::INPUT_SAMPLE), 4);
 }
 
 #[test]
-fn solve_day_4_gold_real() {
+fn test_gold_real() {
     assert_eq!(Day::calculate_gold(Day::INPUT_REAL), 808);
 }

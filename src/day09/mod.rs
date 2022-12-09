@@ -110,31 +110,31 @@ fn test_calculate_tail_position() {
 }
 
 #[test]
-fn test_day_9_silver_sample() {
+fn test_silver_sample() {
     let output = Day::calculate_silver(Day::INPUT_SAMPLE);
     assert_eq!(13, output);
 }
 
 #[test]
-fn test_day_9_silver_real() {
+fn test_silver_real() {
     let output = Day::calculate_silver(Day::INPUT_REAL);
     assert_eq!(6339, output);
 }
 
 #[test]
-fn test_day_9_gold_sample() {
+fn test_gold_sample() {
     let output = Day::calculate_gold(Day::INPUT_SAMPLE);
     assert_eq!(1, output);
 }
 
 #[test]
-fn test_day_9_gold_sample_2() {
+fn test_gold_sample_2() {
     let output = Day::calculate_gold(include_str!("input_sample_2.txt"));
     assert_eq!(36, output);
 }
 
 #[test]
-fn test_day_9_gold_real() {
+fn test_gold_real() {
     let output = Day::calculate_gold(Day::INPUT_REAL);
     assert_eq!(2541, output);
 }

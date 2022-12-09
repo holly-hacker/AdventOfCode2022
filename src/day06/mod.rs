@@ -81,13 +81,13 @@ fn calculate_bitwise_skip<const SIZE: usize>(bytes: &[u8]) -> usize {
 }
 
 #[test]
-fn test_day_6_silver_sample() {
+fn test_silver_sample() {
     let output = Day::calculate_silver(Day::INPUT_SAMPLE);
     assert_eq!(7, output);
 }
 
 #[test]
-fn test_day_7_silver_extra_samples() {
+fn test_silver_extra_samples() {
     assert_eq!(5, Day::calculate_silver("bvwbjplbgvbhsrlpgdmjqwftvncz"));
     assert_eq!(6, Day::calculate_silver("nppdvjthqldpwncqszvftbrmjlhg"));
     assert_eq!(
@@ -101,19 +101,19 @@ fn test_day_7_silver_extra_samples() {
 }
 
 #[test]
-fn test_day_6_silver_real() {
+fn test_silver_real() {
     let output = Day::calculate_silver(Day::INPUT_REAL);
     assert_eq!(1175, output);
 }
 
 #[test]
-fn test_day_6_gold_sample() {
+fn test_gold_sample() {
     let output = Day::calculate_gold(Day::INPUT_SAMPLE);
     assert_eq!(19, output);
 }
 
 #[test]
-fn test_day_7_gold_extra_samples() {
+fn test_gold_extra_samples() {
     assert_eq!(23, Day::calculate_gold("bvwbjplbgvbhsrlpgdmjqwftvncz"));
     assert_eq!(23, Day::calculate_gold("nppdvjthqldpwncqszvftbrmjlhg"));
     assert_eq!(29, Day::calculate_gold("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg"));
@@ -121,7 +121,7 @@ fn test_day_7_gold_extra_samples() {
 }
 
 #[test]
-fn test_day_6_gold_real() {
+fn test_gold_real() {
     let output = Day::calculate_gold(Day::INPUT_REAL);
     assert_eq!(3217, output);
 }
