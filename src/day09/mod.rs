@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use ahash::AHashSet;
 
 use crate::utils::{fast_parse_int_from_bytes, split_once};
 
@@ -12,13 +12,13 @@ impl AocDay<usize> for Day {
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
     fn calculate_silver(input: &str) -> usize {
-        let mut visited = HashSet::new(); // TODO: for perf, use a different hash function
+        let mut visited = AHashSet::default();
         let mut bytes = input.as_bytes();
 
         let mut head_positions = (0, 0);
-        let mut tail_positions = (0, 0);
+        let mut tail_position = (0, 0);
 
-        visited.insert(tail_positions);
+        visited.insert(tail_position);
 
         while !bytes.is_empty() {
             let line;
@@ -35,9 +35,12 @@ impl AocDay<usize> for Day {
                     b'D' => (head_positions.0, head_positions.1 + 1),
                     _ => unreachable!(),
                 };
-                tail_positions = calculate_tail_position(head_positions, tail_positions);
+                let pos_before = tail_position;
+                tail_position = calculate_tail_position(head_positions, tail_position);
 
-                visited.insert(tail_positions);
+                if pos_before != tail_position {
+                    visited.insert(tail_position);
+                }
             }
         }
 
@@ -47,7 +50,7 @@ impl AocDay<usize> for Day {
 
 impl AocDayFull<usize> for Day {
     fn calculate_gold(input: &str) -> usize {
-        let mut visited = HashSet::new(); // TODO: for perf, use a different hash function
+        let mut visited = AHashSet::default();
         let mut bytes = input.as_bytes();
 
         let mut snake_positions = [(0, 0); 10];
@@ -70,12 +73,15 @@ impl AocDayFull<usize> for Day {
                     _ => unreachable!(),
                 };
 
+                let pos_before = snake_positions[9];
                 for i in 0..9 {
                     snake_positions[i + 1] =
                         calculate_tail_position(snake_positions[i], snake_positions[i + 1]);
                 }
 
-                visited.insert(snake_positions[9]);
+                if pos_before != snake_positions[9] {
+                    visited.insert(snake_positions[9]);
+                }
             }
         }
 
@@ -85,15 +91,13 @@ impl AocDayFull<usize> for Day {
 
 fn calculate_tail_position(head: (isize, isize), tail: (isize, isize)) -> (isize, isize) {
     let tail_relative = (tail.0 - head.0, tail.1 - head.1);
-    let x_sign = tail_relative.0.signum();
-    let y_sign = tail_relative.1.signum();
 
     let tail_relative = match (tail_relative.0.abs(), tail_relative.1.abs()) {
-        (0, 0) | (0, 1) | (1, 0) | (1, 1) => tail_relative,
-        (2, 0) | (2, 1) => (1 * x_sign, 0),
-        (0, 2) | (1, 2) => (0, 1 * y_sign),
-        (2, 2) => (1 * x_sign, 1 * y_sign),
-        x => unreachable!("{x:?}"),
+        (0 | 1, 0 | 1) => return tail,
+        (2, 0 | 1) => (tail_relative.0.signum(), 0),
+        (0 | 1, 2) => (0, tail_relative.1.signum()),
+        (2, 2) => (tail_relative.0.signum(), tail_relative.1.signum()),
+        _ => unreachable!(),
     };
 
     (head.0 + tail_relative.0, head.1 + tail_relative.1)
