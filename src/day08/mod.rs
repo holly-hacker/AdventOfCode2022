@@ -9,66 +9,70 @@ impl AocDay<usize> for Day {
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
     fn calculate_silver(input: &str) -> usize {
-        let (trees, width, height) = parse_input(input);
+        // TODO: could also take a transposed copy? probably slower though
+        let (trees, stride) = parse_input_contiguous(input);
 
-        let outer_ring_size = width * 2 + height * 2 - 4;
+        let outer_ring_size = (stride - 1) * 4;
 
         // iterate over inner trees
+        let mut highest_tree_vertical = (&trees[0..stride]).to_vec();
         let mut visible_trees = 0;
-        for y in 1..(height - 1) {
-            for x in 1..(width - 1) {
-                let current_tree = trees[y][x];
-                // TODO: can cache biggest tree to each side
+        for y in 1..(stride - 1) {
+            let mut highest_tree_horizontal = trees[y * stride + 0];
+            let mut bigger_tree_to_the_right = (0usize, 0u8);
+            for x in 1..(stride - 1) {
+                let current_tree = trees[y * stride + x];
 
-                // check LOS left
-                let mut tree_covered = false;
-                for x_check in (0..x).rev() {
-                    if current_tree <= trees[y][x_check] {
-                        // tree is covered
-                        tree_covered = true;
-                        continue;
-                    }
-                }
-                if !tree_covered {
+                let tree_covered_left = current_tree <= highest_tree_horizontal;
+                highest_tree_horizontal = highest_tree_horizontal.max(current_tree);
+
+                let tree_covered_top = current_tree <= highest_tree_vertical[x];
+                highest_tree_vertical[x] = highest_tree_vertical[x].max(current_tree);
+
+                // check LOS left and up
+                if !tree_covered_left || !tree_covered_top {
                     visible_trees += 1;
                     continue;
                 }
 
                 // check LOS right
-                let mut tree_covered = false;
-                for x_check in (x + 1)..width {
-                    if current_tree <= trees[y][x_check] {
-                        // tree is covered
-                        tree_covered = true;
-                        continue;
-                    }
-                }
-                if !tree_covered {
-                    visible_trees += 1;
-                    continue;
-                }
+                let mut tree_covered_right =
+                    bigger_tree_to_the_right.0 > x && bigger_tree_to_the_right.1 >= current_tree;
 
-                // check LOS up
-                let mut tree_covered = false;
-                for y_check in (0..y).rev() {
-                    if current_tree <= trees[y_check][x] {
-                        // tree is covered
-                        tree_covered = true;
-                        continue;
+                // if we don't have a known higher number to the right, loop through them to find
+                // the first larger number and cache it.
+                if !tree_covered_right {
+                    bigger_tree_to_the_right.1 = 0;
+
+                    for tree_x_index in (x.max(bigger_tree_to_the_right.0) + 1)..stride {
+                        let tree_to_compare = trees[(y * stride) + tree_x_index];
+                        if tree_to_compare >= current_tree {
+                            // we found a tree that covers us
+                            tree_covered_right = true;
+                            bigger_tree_to_the_right.0 = tree_x_index;
+                            bigger_tree_to_the_right.1 = tree_to_compare;
+
+                            // breaking here means we look for the first number that is larger, rather than the largest number in general
+                            // it turns out to be faster to do this.
+                            // if we did want to look for the largest number in general, we'd need to add that check above
+                            break;
+                        }
                     }
                 }
-                if !tree_covered {
+                if !tree_covered_right {
                     visible_trees += 1;
                     continue;
                 }
 
                 // check LOS down
+                // we don't do the same optimization here because the additional complexity makes
+                // it slower.
                 let mut tree_covered = false;
-                for y_check in (y + 1)..height {
-                    if current_tree <= trees[y_check][x] {
+                for y_check in (y + 1)..stride {
+                    if current_tree <= trees[y_check * stride + x] {
                         // tree is covered
                         tree_covered = true;
-                        continue;
+                        break;
                     }
                 }
                 if !tree_covered {
@@ -84,21 +88,22 @@ impl AocDay<usize> for Day {
 
 impl AocDayFull<usize> for Day {
     fn calculate_gold(input: &str) -> usize {
-        let (trees, width, height) = parse_input(input);
+        // let (trees, width, height) = parse_input(input);
+        let (trees, stride) = parse_input_contiguous(input);
 
         let mut highest_score = 0;
 
         // outside trees will always be 0 because of the multiplication
-        for y in 1..(height - 1) {
-            for x in 1..(width - 1) {
-                let start_tree = trees[y][x];
+        for y in 1..(stride - 1) {
+            for x in 1..(stride - 1) {
+                let start_tree = trees[y * stride + x];
                 // println!("Current tree: {start_tree}");
                 let mut score = 1;
 
                 // left
                 let mut score_calc = 0;
                 for x_check in (0..x).rev() {
-                    let tree = trees[y][x_check];
+                    let tree = trees[y * stride + x_check];
 
                     score_calc += 1;
 
@@ -111,8 +116,8 @@ impl AocDayFull<usize> for Day {
 
                 // right
                 let mut score_calc = 0;
-                for x_check in (x + 1)..width {
-                    let tree = trees[y][x_check];
+                for x_check in (x + 1)..stride {
+                    let tree = trees[y * stride + x_check];
 
                     score_calc += 1;
 
@@ -126,7 +131,7 @@ impl AocDayFull<usize> for Day {
                 // up
                 let mut score_calc = 0;
                 for y_check in (0..y).rev() {
-                    let tree = trees[y_check][x];
+                    let tree = trees[y_check * stride + x];
 
                     score_calc += 1;
 
@@ -139,8 +144,8 @@ impl AocDayFull<usize> for Day {
 
                 // down
                 let mut score_calc = 0;
-                for y_check in (y + 1)..height {
-                    let tree = trees[y_check][x];
+                for y_check in (y + 1)..stride {
+                    let tree = trees[y_check * stride + x];
                     score_calc += 1;
                     if tree >= start_tree {
                         break;
@@ -157,28 +162,22 @@ impl AocDayFull<usize> for Day {
     }
 }
 
-fn parse_input(input: &str) -> (Vec<Vec<u8>>, usize, usize) {
+fn parse_input_contiguous(input: &str) -> (Vec<u8>, usize) {
     let bytes = input.as_bytes();
-    let width = bytes.iter().position(|&b| b == b'\n').unwrap();
-    let mut trees = vec![];
+    let stride = bytes.iter().position(|&b| b == b'\n').unwrap();
+    let mut trees = vec![0; stride * stride]; // TODO: assuming square patch here
     let mut bytes_index = 0;
-    while bytes_index < bytes.len() {
-        let mut vec = vec![0; width];
-
-        for vec_index in 0..width {
-            vec[vec_index] = bytes[bytes_index] - b'0';
-            bytes_index += 1; // TODO: maybe you can save a few instructions by not incrementing and adding to bytes_index
+    for line in 0..stride {
+        let start_line = line * stride;
+        for vec_index in 0..stride {
+            trees[start_line + vec_index] = bytes[bytes_index] - b'0';
+            bytes_index += 1;
         }
 
-        bytes_index += 1;
-
-        trees.push(vec);
+        bytes_index += 1; // skip newline
     }
 
-    let height = trees.len();
-    debug_assert_eq!(height * width, trees.iter().map(Vec::len).sum());
-
-    (trees, width, height)
+    (trees, stride)
 }
 
 #[test]
