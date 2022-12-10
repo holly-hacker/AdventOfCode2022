@@ -4,7 +4,7 @@ use super::*;
 
 pub struct Day;
 
-impl AocDay<usize> for Day {
+impl SolutionSilver<usize> for Day {
     const DAY: u32 = 6;
 
     const INPUT_SAMPLE: &'static str = include_str!("input_sample.txt");
@@ -16,7 +16,7 @@ impl AocDay<usize> for Day {
     }
 }
 
-impl AocDayFull<usize> for Day {
+impl SolutionGold<usize, usize> for Day {
     fn calculate_gold(input: &str) -> usize {
         calculate_bitwise_skip::<14>(input.as_bytes())
     }

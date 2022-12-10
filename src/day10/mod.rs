@@ -4,7 +4,7 @@ use super::*;
 
 pub struct Day;
 
-impl AocDay<isize> for Day {
+impl SolutionSilver<isize> for Day {
     const DAY: u32 = 10;
 
     const INPUT_SAMPLE: &'static str = include_str!("input_sample.txt");

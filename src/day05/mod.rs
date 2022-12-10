@@ -6,7 +6,7 @@ use super::*;
 
 pub struct Day;
 
-impl AocDay<String> for Day {
+impl SolutionSilver<String> for Day {
     const DAY: u32 = 5;
     const INPUT_SAMPLE: &'static str = include_str!("input_sample.txt");
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
@@ -48,7 +48,7 @@ impl AocDay<String> for Day {
     }
 }
 
-impl AocDayFull<String> for Day {
+impl SolutionGold<String, String> for Day {
     fn calculate_gold(input: &str) -> String {
         let mut bytes = input.as_bytes();
         let mut header;

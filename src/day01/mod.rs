@@ -3,7 +3,7 @@ use crate::utils::*;
 
 pub struct Day;
 
-impl AocDay<usize> for Day {
+impl SolutionSilver<usize> for Day {
     const DAY: u32 = 1;
     const INPUT_SAMPLE: &'static str = include_str!("input_sample.txt");
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
@@ -26,7 +26,7 @@ impl AocDay<usize> for Day {
     }
 }
 
-impl AocDayFull<usize> for Day {
+impl SolutionGold<usize, usize> for Day {
     fn calculate_gold(input: &str) -> usize {
         let mut lines = input.split('\n').peekable();
 

@@ -2,7 +2,7 @@ use super::*;
 
 pub struct Day;
 
-impl AocDay<usize> for Day {
+impl SolutionSilver<usize> for Day {
     const DAY: u32 = 8;
 
     const INPUT_SAMPLE: &'static str = include_str!("input_sample.txt");
@@ -86,7 +86,7 @@ impl AocDay<usize> for Day {
     }
 }
 
-impl AocDayFull<usize> for Day {
+impl SolutionGold<usize, usize> for Day {
     fn calculate_gold(input: &str) -> usize {
         // let (trees, width, height) = parse_input(input);
         let (trees, stride) = parse_input_contiguous(input);
