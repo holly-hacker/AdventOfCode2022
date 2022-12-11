@@ -20,6 +20,10 @@ codegen-units = 1
 lto = true
 panic = "abort"
 
+[profile.profile]
+inherits = "release"
+debug = true
+
 [features]
 day01 = []
 day02 = []

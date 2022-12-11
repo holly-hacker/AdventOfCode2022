@@ -14,9 +14,9 @@ impl SolutionSilver<usize> for Day {
 
         for _ in 0..20 {
             for i in 0..monkeys.len() {
-                let mut monkey = monkeys[i].clone();
-                monkey.inspect_count += monkey.items.len();
-                for item in monkey.items.drain(..) {
+                for item_idx in 0..monkeys[i].items.len() {
+                    let monkey = &monkeys[i];
+                    let item = monkey.items[item_idx];
                     let evaluated = monkey.operation.evaluate(item);
                     let evaluated = evaluated / 3;
                     let divided = evaluated % monkey.division_check;
@@ -26,12 +26,12 @@ impl SolutionSilver<usize> for Day {
                         monkey.target_false
                     };
 
-                    debug_assert_ne!(i, target_monkey); // the monkey at `i` will be overridden later
+                    debug_assert_ne!(i, target_monkey);
                     monkeys[target_monkey].items.push(evaluated);
                 }
 
-                // insert monkey back in
-                monkeys[i] = monkey;
+                monkeys[i].inspect_count += monkeys[i].items.len();
+                monkeys[i].items.clear();
             }
         }
 
@@ -58,9 +58,9 @@ impl SolutionGold<usize, usize> for Day {
 
         for _ in 0..10000 {
             for i in 0..monkeys.len() {
-                let mut monkey = monkeys[i].clone();
-                monkey.inspect_count += monkey.items.len();
-                for item in monkey.items.drain(..) {
+                for item_idx in 0..monkeys[i].items.len() {
+                    let monkey = &monkeys[i];
+                    let item = monkey.items[item_idx];
                     let evaluated = monkey.operation.evaluate(item);
                     let evaluated = evaluated % gcd;
                     let divided = evaluated % monkey.division_check;
@@ -70,12 +70,12 @@ impl SolutionGold<usize, usize> for Day {
                         monkey.target_false
                     };
 
-                    debug_assert_ne!(i, target_monkey); // the monkey at `i` will be overridden later
+                    debug_assert_ne!(i, target_monkey);
                     monkeys[target_monkey].items.push(evaluated);
                 }
 
-                // insert monkey back in
-                monkeys[i] = monkey;
+                monkeys[i].inspect_count += monkeys[i].items.len();
+                monkeys[i].items.clear();
             }
         }
 
@@ -89,12 +89,10 @@ impl SolutionGold<usize, usize> for Day {
 
             (acc.0, acc.1)
         });
-
         max1 * max2
     }
 }
 
-#[derive(Clone)]
 struct Monkey {
     items: Vec<usize>,
     operation: Operation,
@@ -106,7 +104,7 @@ struct Monkey {
 
 impl Monkey {
     pub fn parse_input(mut bytes: &[u8]) -> Vec<Monkey> {
-        let mut monkeys = vec![]; // TODO: arrayvec
+        let mut monkeys = vec![];
 
         // parse all monkeys
         loop {
@@ -130,7 +128,7 @@ impl Monkey {
         let mut nums;
         (nums, bytes) = split_once(bytes, b'\n').unwrap();
 
-        let mut items = vec![];
+        let mut items = Vec::with_capacity(24);
         let mut num_bytes;
         while !nums.is_empty() {
             nums = &nums[1..];
@@ -174,7 +172,6 @@ impl Monkey {
     }
 }
 
-#[derive(Clone)]
 enum Operation {
     AddConstant(usize),
     MultiplyConstant(usize),
