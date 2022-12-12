@@ -5,6 +5,7 @@ use std::{
 };
 
 use ahash::HashSet;
+use rayon::prelude::*;
 use tinyvec::ArrayVec;
 
 use super::*;
@@ -101,8 +102,8 @@ impl SolutionGold<usize, usize> for Day {
         let end = vec.iter().position(|x| *x == (26)).unwrap();
 
         starts
-            .iter()
-            .flat_map(|start| {
+            .par_iter()
+            .map(|start| {
                 bfs(*start, end, |i| {
                     let mut ret = ArrayVec::<[usize; 4]>::default();
                     let x = i % stride;
@@ -131,8 +132,9 @@ impl SolutionGold<usize, usize> for Day {
 
                     ret
                 })
+                .map(|x| x.depth())
+                .unwrap_or(usize::MAX)
             })
-            .map(|x| x.depth())
             .min()
             .unwrap()
             - 1
