@@ -5,6 +5,7 @@ use std::{
 };
 
 use ahash::HashSet;
+use tinyvec::ArrayVec;
 
 use super::*;
 
@@ -17,7 +18,7 @@ impl SolutionSilver<usize> for Day {
     const INPUT_REAL: &'static str = include_str!("input_real.txt");
 
     fn calculate_silver(input: &str) -> usize {
-        // todo: can improve this massively, but I hate pathfinding
+        // TODO: can improve this massively, but I hate pathfinding
         // 1. use midpoints for unique chars
         let stride = input.lines().next().unwrap().len();
         let vec: Vec<_> = input
@@ -37,7 +38,7 @@ impl SolutionSilver<usize> for Day {
         let end = vec.iter().position(|x| *x == (26)).unwrap();
 
         let path = bfs(start, end, |i| {
-            let mut ret = vec![];
+            let mut ret = ArrayVec::<[usize; 4]>::default();
             let x = i % stride;
             let y = i / stride;
 
@@ -72,9 +73,9 @@ impl SolutionSilver<usize> for Day {
 
 impl SolutionGold<usize, usize> for Day {
     fn calculate_gold(input: &str) -> usize {
-        // todo: can improve this massively, but I hate pathfinding
+        // TODO: can improve this massively, but I hate pathfinding
         // 1. search in reverse rather than brute forcing
-        // 2. early exit if a path is longer than shortest found path, if any
+        // 2. early exit if a path is longer than shortest found path, if any (not needed if 1)
         // 3. use midpoints for unique chars
         let stride = input.lines().next().unwrap().len();
         let vec: Vec<_> = input
@@ -103,7 +104,7 @@ impl SolutionGold<usize, usize> for Day {
             .iter()
             .flat_map(|start| {
                 bfs(*start, end, |i| {
-                    let mut ret = vec![];
+                    let mut ret = ArrayVec::<[usize; 4]>::default();
                     let x = i % stride;
                     let y = i / stride;
 
