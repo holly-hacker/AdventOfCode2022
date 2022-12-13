@@ -75,7 +75,7 @@ impl SolutionGold<usize, usize> for Day {
             bytes = &bytes[2..];
         }
 
-        packets.sort();
+        packets.sort_unstable();
 
         (packets.iter().position(|p| p == &distress_1).unwrap() + 1)
             * (packets.iter().position(|p| p == &distress_2).unwrap() + 1)
