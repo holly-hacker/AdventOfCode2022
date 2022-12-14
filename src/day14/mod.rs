@@ -13,6 +13,7 @@ impl SolutionSilver<usize> for Day {
 
     fn calculate_silver(input: &str) -> usize {
         let mut grid = parse_input(input);
+        let rock_bottom = *grid.iter().map(|(_x, y)| y).max().unwrap();
 
         // simulate the sand
         let mut iteration = 0;
@@ -22,7 +23,7 @@ impl SolutionSilver<usize> for Day {
             // fall down
             loop {
                 // we fell off (the world)
-                if position.1 > 1000 {
+                if position.1 > rock_bottom {
                     return iteration;
                 }
 
@@ -53,9 +54,7 @@ impl SolutionSilver<usize> for Day {
 impl SolutionGold<usize, usize> for Day {
     fn calculate_gold(input: &str) -> usize {
         let mut grid = parse_input(input);
-
-        // what the fuck? this should be offset by 2 but it works as-is
-        let rock_bottom = grid.iter().map(|(_x, y)| y).max().unwrap() + 0;
+        let rock_bottom = grid.iter().map(|(_x, y)| y).max().unwrap() + 2;
 
         // simulate the sand
         let mut iteration = 0;
@@ -69,7 +68,7 @@ impl SolutionGold<usize, usize> for Day {
             // fall down
             loop {
                 // we hit rock bottom
-                if position.1 > rock_bottom {
+                if position.1 + 1 == rock_bottom {
                     grid.insert(position);
                     break;
                 }
