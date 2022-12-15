@@ -43,25 +43,17 @@ impl SolutionSilver<usize> for Day {
             let x = i % stride;
             let y = i / stride;
 
-            if x > 0 {
-                if vec[i - 1] - vec[i] <= 1 {
-                    ret.push(i - 1);
-                }
+            if x > 0 && vec[i - 1] - vec[i] <= 1 {
+                ret.push(i - 1);
             }
-            if x < (stride - 1) {
-                if vec[i + 1] - vec[i] <= 1 {
-                    ret.push(i + 1);
-                }
+            if x < (stride - 1) && vec[i + 1] - vec[i] <= 1 {
+                ret.push(i + 1);
             }
-            if y > 0 {
-                if vec[i - stride] - vec[i] <= 1 {
-                    ret.push(i - stride);
-                }
+            if y > 0 && vec[i - stride] - vec[i] <= 1 {
+                ret.push(i - stride);
             }
-            if y < (height - 1) {
-                if vec[i + stride] - vec[i] <= 1 {
-                    ret.push(i + stride);
-                }
+            if y < (height - 1) && vec[i + stride] - vec[i] <= 1 {
+                ret.push(i + stride);
             }
 
             ret
@@ -109,25 +101,17 @@ impl SolutionGold<usize, usize> for Day {
                     let x = i % stride;
                     let y = i / stride;
 
-                    if x > 0 {
-                        if vec[i - 1] - vec[i] <= 1 {
-                            ret.push(i - 1);
-                        }
+                    if x > 0 && vec[i - 1] - vec[i] <= 1 {
+                        ret.push(i - 1);
                     }
-                    if x < (stride - 1) {
-                        if vec[i + 1] - vec[i] <= 1 {
-                            ret.push(i + 1);
-                        }
+                    if x < (stride - 1) && vec[i + 1] - vec[i] <= 1 {
+                        ret.push(i + 1);
                     }
-                    if y > 0 {
-                        if vec[i - stride] - vec[i] <= 1 {
-                            ret.push(i - stride);
-                        }
+                    if y > 0 && vec[i - stride] - vec[i] <= 1 {
+                        ret.push(i - stride);
                     }
-                    if y < (height - 1) {
-                        if vec[i + stride] - vec[i] <= 1 {
-                            ret.push(i + stride);
-                        }
+                    if y < (height - 1) && vec[i + stride] - vec[i] <= 1 {
+                        ret.push(i + stride);
                     }
 
                     ret

@@ -46,7 +46,7 @@ fn calculate_bitwise<const SIZE: usize>(bytes: &[u8]) -> usize {
 fn calculate_bitwise_golf<const SIZE: usize>(bytes: &[u8]) -> usize {
     bytes
         .array_windows::<SIZE>()
-        .map(|w| w.iter().fold(0, |a, v| a | (1u32 << v - b'a')))
+        .map(|w| w.iter().fold(0, |a, v| a | (1u32 << (v - b'a'))))
         .position(|v| v.count_ones() as usize == SIZE)
         .unwrap()
         + SIZE

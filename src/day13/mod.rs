@@ -110,7 +110,7 @@ impl Packet {
                 (Self::List(list), bytes)
             }
             _ => {
-                debug_assert!(matches!(&bytes[0], b'0'..=b'9'));
+                debug_assert!(bytes[0].is_ascii_digit());
                 let num;
                 (num, bytes) = Self::parse_number(bytes);
                 (Self::Number(num), bytes)
@@ -119,10 +119,7 @@ impl Packet {
     }
 
     fn parse_number(bytes: &[u8]) -> (usize, &[u8]) {
-        let num_len = bytes
-            .iter()
-            .take_while(|b| matches!(b, b'0'..=b'9'))
-            .count();
+        let num_len = bytes.iter().take_while(|b| b.is_ascii_digit()).count();
         let (num_bytes, rem_bytes) = bytes.split_at(num_len);
         let num = fast_parse_int_from_bytes(num_bytes);
 

@@ -6,7 +6,9 @@
     clippy::wildcard_imports,
     clippy::missing_const_for_fn,
     clippy::must_use_candidate,
-    clippy::unreadable_literal
+    clippy::unreadable_literal,
+    clippy::identity_op,
+    clippy::type_complexity
 )]
 
 use std::fmt::Display;

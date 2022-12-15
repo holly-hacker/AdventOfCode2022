@@ -15,7 +15,7 @@ impl SolutionSilver<usize> for Day {
         let outer_ring_size = (stride - 1) * 4;
 
         // iterate over inner trees
-        let mut highest_tree_vertical = (&trees[0..stride]).to_vec();
+        let mut highest_tree_vertical = trees[0..stride].to_vec();
         let mut visible_trees = 0;
         for y in 1..(stride - 1) {
             let mut highest_tree_horizontal = trees[y * stride + 0];
