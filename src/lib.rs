@@ -86,6 +86,11 @@ pub trait SolutionGold<TSilver: Display, TGold: Display>: SolutionSilver<TSilver
         println!("Day {}, gold (sample): {output} ({time:?})", Self::DAY);
         let (output, time) = run_timed(|| Self::calculate_gold(Self::INPUT_REAL));
         println!("Day {}, gold: {output} ({time:?})", Self::DAY);
+
+        #[cfg(feature = "profile")]
+        for _ in 0..100 {
+            Self::calculate_gold(Self::INPUT_REAL);
+        }
     }
 
     fn calculate_gold(input: &str) -> TGold;
