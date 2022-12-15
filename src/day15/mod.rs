@@ -1,4 +1,9 @@
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::cast_sign_loss)]
+
 use std::ops::Range;
+
+use tinyvec::TinyVec;
 
 use super::*;
 
@@ -20,7 +25,7 @@ impl SolutionSilver<usize> for Day {
         // we need to check the range of each sensor and add its range to it
         let ranges: Vec<_> = input
             .iter()
-            .flat_map(|(s, dist)| {
+            .filter_map(|(s, dist)| {
                 let y_diff = s.1.abs_diff(line);
 
                 if *dist < y_diff {
@@ -40,7 +45,7 @@ impl SolutionSilver<usize> for Day {
             let next_range = ranges
                 .iter()
                 .filter(|r| r.contains(&current_x) || r.start() > &current_x)
-                .min_by(|r1, r2| r1.start().cmp(&r2.start()));
+                .min_by(|r1, r2| r1.start().cmp(r2.start()));
 
             let Some(range) = next_range else {
                 break;
@@ -48,11 +53,10 @@ impl SolutionSilver<usize> for Day {
 
             let start = range.start().max(&current_x);
             let end = range.end() + 1; // inclusive
+            debug_assert!(*start <= end);
             count += (end - start) as usize;
             current_x = end;
         }
-
-        // TODO: remove beacons from the range?
 
         count - 1
     }
@@ -76,25 +80,26 @@ fn contains_square(
     x: Range<usize>,
     y: Range<usize>,
 ) -> Option<(usize, usize)> {
-    // println!("Checking x={x:?} y={y:?}");
-
     if x.clone().count() == 0 || y.clone().count() == 0 {
         return None;
     }
 
     // check if the range is contained by a sensor
     // can be done by checking if all corners are contained
-    let fully_contained = sensors.iter().any(|(pos, range)| {
-        let top_left = (x.start as isize, y.start as isize);
-        let top_right = ((x.end - 1) as isize, y.start as isize);
-        let bottom_left = (x.start as isize, (y.end - 1) as isize);
-        let bottom_right = ((x.end - 1) as isize, (y.end - 1) as isize);
+    let top_left = (x.start as isize, y.start as isize);
+    let top_right = ((x.end - 1) as isize, y.start as isize);
+    let bottom_left = (x.start as isize, (y.end - 1) as isize);
+    let bottom_right = ((x.end - 1) as isize, (y.end - 1) as isize);
 
-        manhattan_distance(*pos, top_left) <= *range
-            && manhattan_distance(*pos, top_right) <= *range
-            && manhattan_distance(*pos, bottom_left) <= *range
-            && manhattan_distance(*pos, bottom_right) <= *range
+    let fully_contained = sensors.iter().any(|(pos, range)| {
+        let pos = *pos;
+
+        manhattan_distance(pos, top_left) <= *range
+            && manhattan_distance(pos, top_right) <= *range
+            && manhattan_distance(pos, bottom_left) <= *range
+            && manhattan_distance(pos, bottom_right) <= *range
     });
+
     if fully_contained {
         // some range fully contains this section, so we can ignore it
         return None;
@@ -103,7 +108,6 @@ fn contains_square(
     // now divide and try subsections
     // however, if we are 1x1, this is the solution
     if x.clone().count() == 1 && y.clone().count() == 1 {
-        println!("Found!");
         return Some((x.start, y.start));
     }
 
@@ -125,7 +129,7 @@ fn manhattan_distance(s: (isize, isize), b: (isize, isize)) -> usize {
     s.0.abs_diff(b.0) + s.1.abs_diff(b.1)
 }
 
-fn parse_input(input: &str) -> Vec<((isize, isize), usize)> {
+fn parse_input(input: &str) -> TinyVec<[((isize, isize), usize); 32]> {
     input
         .lines()
         .map(|line| {
