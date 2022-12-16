@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use ahash::{AHashMap, AHashSet};
-use tinyvec::{ArrayVec, TinyVec};
+use tinyvec::{tiny_vec, ArrayVec, TinyVec};
 
 use crate::utils::fast_parse_int;
 
@@ -10,7 +10,7 @@ use super::*;
 pub struct Day;
 
 type ValveInfo = AHashMap<ValveName, (usize, Vec<ValveName>)>;
-type ValveInfoWeighted = AHashMap<ValveName, (usize, Vec<(ValveName, usize)>)>;
+type ValveInfoWeighted = AHashMap<ValveName, (usize, TinyVec<[(ValveName, usize); 16]>)>;
 
 impl SolutionSilver<usize> for Day {
     const DAY: u32 = 16;
@@ -21,7 +21,7 @@ impl SolutionSilver<usize> for Day {
         let input: ValveInfo = parse_input(input);
         let input = optimize_input(&input);
 
-        recursive_search(&input, Path::new(), 0, 0)
+        recursive_search(&input, Path::new(), 0, 0, &tiny_vec!())
     }
 }
 
@@ -30,6 +30,7 @@ fn recursive_search(
     path: Path,
     max_score_so_far: usize,
     current_minute: usize,
+    nodes_since_last_valve_turn: &TinyVec<[ValveName; 20]>,
 ) -> usize {
     // println!("Current minute: {current_minute}");
     let current_valve = path.route.last().unwrap();
@@ -42,17 +43,18 @@ fn recursive_search(
         return current_score;
     }
 
+    // early exit if all valves have been opened
     // TODO: currently assumes that `AA` always has pressure=0
     if path.opened_valves.len() == input.len() - 1 {
-        // we've opened everything already, early exit
         // println!("we've opened everything already, early exit");
         return current_score;
     }
 
+    // check if this branch has the potential to be faster
     if max_score_so_far != 0 {
-        let remaining_potential = path.remaining_potential_score(input, current_minute);
-        // println!("Potential/max: {}/{max_score_so_far}",current_score + remaining_potential);
-        if current_score + remaining_potential < max_score_so_far {
+        let potential = path.potential_score(input, current_minute);
+        // println!("Potential/max: {potential}/{max_score_so_far}");
+        if potential <= max_score_so_far {
             // we can't win with this line
             // println!("Exiting early because potential is not high enough!");
             return current_score;
@@ -65,6 +67,7 @@ fn recursive_search(
         && !path
             .opened_valves
             .iter()
+            .rev()
             .position(|(n, _)| n == current_valve)
             .is_some()
     {
@@ -73,18 +76,20 @@ fn recursive_search(
         cloned_path
             .opened_valves
             .push((*current_valve, current_minute + 1));
-        let new_score = recursive_search(input, cloned_path, max, current_minute + 1);
+        let new_score = recursive_search(input, cloned_path, max, current_minute + 1, &tiny_vec!());
         max = max.max(new_score);
     }
 
+    // try movements, where we don't a valve
+    // not turning a valve means that turning back is pointless, which is why a blocklist is kept.
+    let mut nodes_since_last_valve_turn = nodes_since_last_valve_turn.clone();
+    nodes_since_last_valve_turn.push(*current_valve);
+
+    // let mut targets_sorted = targets.clone();
+    // targets_sorted.sort_unstable_by(|a, b| (a.1.cmp(&b.1).reverse()));
     for (possible_target, target_cost) in targets {
-        // if we are repeating a route we did before (eg. A->B->A->B), don't do that.
-        // in theory we should be checking if the route we take will lead to an increase in points, though
-        if path
-            .route
-            .windows(2)
-            .any(|w| w[0] == *current_valve && w[1] == *possible_target)
-        {
+        // as long as we don't turn on a valve, don't re-visit the same nodes.
+        if nodes_since_last_valve_turn.contains(possible_target) {
             continue;
         }
 
@@ -94,15 +99,14 @@ fn recursive_search(
             *target_cost, 0,
             "target cost should never be zero for moving somewhere"
         );
-        let new_score = recursive_search(input, cloned_path, max, current_minute + target_cost);
+        let new_score = recursive_search(
+            input,
+            cloned_path,
+            max,
+            current_minute + target_cost,
+            &nodes_since_last_valve_turn,
+        );
         max = max.max(new_score);
-    }
-
-    if max == 0 {
-        let score = path.calculate_score(input);
-        // we don't have any valid places to go to, exit early
-        // println!("Exit early ({score}): {path:?}");
-        return score;
     }
 
     max
@@ -129,8 +133,8 @@ fn resolve_targets(
     targets: &[ValveName],
     valve_info: &ValveInfo,
     weight_offset: usize,
-) -> Vec<(ValveName, usize)> {
-    let mut resolved_targets = vec![];
+) -> TinyVec<[(ValveName, usize); 16]> {
+    let mut resolved_targets = tiny_vec![];
     for target in targets {
         if visited.contains(target) {
             continue;
@@ -210,12 +214,18 @@ impl Path {
             .sum()
     }
 
-    pub fn remaining_potential_score(
-        &self,
-        input: &ValveInfoWeighted,
-        current_minute: usize,
-    ) -> usize {
-        // NOTE: the more accurate this is, the more branches can be trimmed
+    // NOTE: the more accurate this is (ie. lower), the more branches can be trimmed
+    pub fn potential_score(&self, input: &ValveInfoWeighted, current_minute: usize) -> usize {
+        let current_valve_value = self
+            .opened_valves
+            .iter()
+            .map(|(name, minute)| {
+                let pressure = input[name].0;
+                let effective_minutes = 30 - minute;
+                effective_minutes * pressure
+            })
+            .sum::<usize>();
+
         let mut remaining_valves: TinyVec<[usize; 20]> = input
             .iter()
             .filter(|(valve, (pressure, _))| {
@@ -231,19 +241,22 @@ impl Path {
 
         remaining_valves.sort_unstable_by(|a, b| a.cmp(b).reverse());
 
-        remaining_valves
-            .iter()
-            .enumerate()
-            .map(|(index, pressure)| {
-                // array is sorted to have highest value first, so give highest value first
-                let minute_start = current_minute + index + 1;
-                if minute_start >= 30 {
-                    return 0;
-                }
-                let active_turns = 30 - minute_start;
-                active_turns * pressure
-            })
-            .sum()
+        current_valve_value
+            + remaining_valves
+                .iter()
+                .enumerate()
+                .map(|(index, pressure)| {
+                    // array is sorted to have highest value first, so give highest value first
+                    // multiplying the index by 2 because you first need to move to the valve.
+                    // this check is very pessimistic in assuming it takes 1 minute to get to every place
+                    let minute_start = current_minute + index * 2 + 1;
+                    if minute_start >= 30 {
+                        return 0;
+                    }
+                    let active_turns = 30 - minute_start;
+                    active_turns * pressure
+                })
+                .sum::<usize>()
     }
 }
 
