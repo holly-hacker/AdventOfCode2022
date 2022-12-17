@@ -11,6 +11,7 @@ pub struct Day;
 
 type ValveInfo = AHashMap<ValveName, (usize, Vec<ValveName>)>;
 type ValveInfoWeighted = AHashMap<ValveName, (usize, TinyVec<[(ValveName, usize); 16]>)>;
+type ValveDistanceMap = AHashMap<(ValveName, ValveName), usize>;
 
 impl SolutionSilver<usize> for Day {
     const DAY: u32 = 16;
@@ -20,91 +21,56 @@ impl SolutionSilver<usize> for Day {
     fn calculate_silver(input: &str) -> usize {
         let input: ValveInfo = parse_input(input);
         let input = optimize_input(&input);
+        let distances = build_distance_map(&input);
+        // println!("len: {}", distances.len());
+        // println!("tree: {distances:#?}");
 
-        recursive_search(&input, Path::new(), 0, 0, &tiny_vec!())
+        recursive_search(&input, &distances, Path::new_start(), 0)
     }
 }
 
 fn recursive_search(
     input: &ValveInfoWeighted,
+    distances: &ValveDistanceMap,
     path: Path,
-    max_score_so_far: usize,
     current_minute: usize,
-    nodes_since_last_valve_turn: &TinyVec<[ValveName; 20]>,
 ) -> usize {
     // println!("Current minute: {current_minute}");
-    let current_valve = path.route.last().unwrap();
-    let (pressure, targets) = &input[current_valve];
-
-    let current_score = path.calculate_score(input);
-
     if current_minute >= 30 {
         // println!("Exit because time limit is reached ({current_score}): {path:?}");
-        return current_score;
+        return path.calculate_score();
     }
 
-    // early exit if all valves have been opened
-    // TODO: currently assumes that `AA` always has pressure=0
-    if path.opened_valves.len() == input.len() - 1 {
-        // println!("we've opened everything already, early exit");
-        return current_score;
-    }
+    // calculate what happens if you just wait at this point
+    let mut max = path.calculate_score();
 
-    // check if this branch has the potential to be faster
-    if max_score_so_far != 0 {
-        let potential = path.potential_score(input, current_minute);
-        // println!("Potential/max: {potential}/{max_score_so_far}");
-        if potential <= max_score_so_far {
-            // we can't win with this line
-            // println!("Exiting early because potential is not high enough!");
-            return current_score;
-        }
-    }
-
-    let mut max = current_score;
-
-    if *pressure != 0
-        && !path
-            .opened_valves
-            .iter()
-            .rev()
-            .position(|(n, _)| n == current_valve)
-            .is_some()
-    {
-        // open a valve. insert an "open" event in the next minute
-        let mut cloned_path = path.clone();
-        cloned_path
-            .opened_valves
-            .push((*current_valve, current_minute + 1));
-        let new_score = recursive_search(input, cloned_path, max, current_minute + 1, &tiny_vec!());
-        max = max.max(new_score);
-    }
-
-    // try movements, where we don't a valve
-    // not turning a valve means that turning back is pointless, which is why a blocklist is kept.
-    let mut nodes_since_last_valve_turn = nodes_since_last_valve_turn.clone();
-    nodes_since_last_valve_turn.push(*current_valve);
-
-    // let mut targets_sorted = targets.clone();
-    // targets_sorted.sort_unstable_by(|a, b| (a.1.cmp(&b.1).reverse()));
-    for (possible_target, target_cost) in targets {
-        // as long as we don't turn on a valve, don't re-visit the same nodes.
-        if nodes_since_last_valve_turn.contains(possible_target) {
+    let current_valve = path.route.last().unwrap();
+    for target_valve in input.keys() {
+        if target_valve == current_valve || path.route.contains(target_valve) {
             continue;
         }
+        let target_distance = distances[&(*current_valve, *target_valve)];
 
-        let mut cloned_path = path.clone();
-        cloned_path.route.push(*possible_target);
         debug_assert_ne!(
-            *target_cost, 0,
-            "target cost should never be zero for moving somewhere"
+            target_distance, 0,
+            "target distance should never be zero for moving somewhere"
         );
+
+        // move to the given location to turn the valve
+        let target_pressure = input[target_valve].0;
+        debug_assert_ne!(target_pressure, 0);
+        let mut cloned_path = path.clone();
+        cloned_path.route.push(*target_valve);
+        cloned_path
+            .opened_valves
+            .push((target_pressure, current_minute + target_distance + 1));
+
+        // start searching from this place now
         let new_score = recursive_search(
             input,
+            distances,
             cloned_path,
-            max,
-            current_minute + target_cost,
-            &nodes_since_last_valve_turn,
+            current_minute + target_distance + 1,
         );
         max = max.max(new_score);
     }
@@ -113,26 +79,36 @@ fn recursive_search(
 }
 
 /// Optimizes the input by folding valves with flow rates of 0. It ensures that `AA` is always kept.
-fn optimize_input(input: &ValveInfo) -> ValveInfoWeighted {
-    let mut response = ValveInfoWeighted::new();
+fn optimize_input(input_info: &ValveInfo) -> ValveInfoWeighted {
+    let mut output_info = ValveInfoWeighted::new();
 
-    for (valve_name, (pressure, targets)) in input {
-        if *pressure != 0 || *valve_name == ValveName::from_bytes(b"AA") {
-            let mut set = AHashSet::new();
-            set.insert(*valve_name);
-            let new_targets = resolve_targets(set, targets, input, 0);
-            response.insert(*valve_name, (*pressure, new_targets));
+    for (valve, (pressure, _targets)) in input_info {
+        if *pressure != 0 || *valve == ValveName::AA {
+            let new_targets = get_all_target_distances(*valve, input_info);
+            output_info.insert(*valve, (*pressure, new_targets));
         }
     }
 
-    response
+    output_info
 }
 
-fn resolve_targets(
+fn get_all_target_distances(
+    start: ValveName,
+    valve_info: &ValveInfo,
+) -> TinyVec<[(ValveName, usize); 16]> {
+    let mut set = AHashSet::new();
+    set.insert(start);
+    let (_pressure, targets) = &valve_info[&start];
+    let new_targets = get_all_target_distances_recursive(set, &targets, valve_info, 0);
+
+    new_targets
+}
+
+fn get_all_target_distances_recursive(
     visited: AHashSet<ValveName>,
     targets: &[ValveName],
     valve_info: &ValveInfo,
-    weight_offset: usize,
+    accumulated_distance: usize,
 ) -> TinyVec<[(ValveName, usize); 16]> {
     let mut resolved_targets = tiny_vec![];
     for target in targets {
@@ -147,26 +123,97 @@ fn resolve_targets(
             let mut new_visited = visited.clone();
             new_visited.insert(*target);
 
-            for (nested_resolved_target, weight) in
-                resolve_targets(new_visited, target_targets, valve_info, weight_offset + 1)
-            {
+            for (nested_resolved_target, weight) in get_all_target_distances_recursive(
+                new_visited,
+                target_targets,
+                valve_info,
+                accumulated_distance + 1,
+            ) {
                 debug_assert!(!visited.contains(&nested_resolved_target));
                 resolved_targets.push((nested_resolved_target, weight));
             }
         } else {
             // just return this
             debug_assert!(!visited.contains(target));
-            resolved_targets.push((*target, weight_offset + 1));
+            resolved_targets.push((*target, accumulated_distance + 1));
         }
     }
 
     resolved_targets
 }
 
+/// Builds a map with the shortest distance between any 2 valves with non-zero pressure. Always includes AA as well.
+fn build_distance_map(valve_info: &ValveInfoWeighted) -> ValveDistanceMap {
+    let mut distance_map = ValveDistanceMap::new();
+    for valve in valve_info.keys() {
+        let mut distances = AHashMap::new();
+
+        // calculate the distance to each other node
+        calculate_distance_recursive(&mut distances, *valve, *valve, valve_info, 0);
+
+        // add those distances to the main map
+        for (target, distance) in distances {
+            let target_pressure = valve_info[&target].0;
+            if target_pressure != 0 && target != ValveName::AA {
+                distance_map.insert((*valve, target), distance);
+            }
+        }
+    }
+
+    distance_map
+}
+
+fn calculate_distance_recursive(
+    found_distances: &mut AHashMap<ValveName, usize>,
+    start: ValveName,
+    current: ValveName,
+    valve_info: &ValveInfoWeighted,
+    accumulated_distance: usize,
+) {
+    let (_, targets) = &valve_info[&current];
+
+    for (target, distance) in targets {
+        if start == *target {
+            continue;
+        }
+
+        let total_distance = accumulated_distance + distance;
+        if !found_distances.contains_key(target) {
+            let target_pressure = valve_info[target].0;
+            if target_pressure != 0 && *target != ValveName::AA {
+                // println!("{start:?} > inserting {target:?} with val {total_distance}");
+                found_distances.insert(*target, total_distance);
+            }
+            calculate_distance_recursive(
+                found_distances,
+                start,
+                *target,
+                valve_info,
+                total_distance,
+            );
+        } else if total_distance < found_distances[&target] {
+            // already exists but we got there in a faster way
+            // println!("{start:?} > inserting {target:?} with val {total_distance} (faster!)");
+            found_distances.insert(*target, total_distance);
+            debug_assert_ne!(valve_info[target].0, 0);
+
+            calculate_distance_recursive(
+                found_distances,
+                start,
+                *target,
+                valve_info,
+                total_distance,
+            );
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Default)]
 struct ValveName(usize);
 
 impl ValveName {
+    const AA: ValveName = ValveName(0);
+
     pub fn from_bytes(bytes: &[u8]) -> Self {
         Self(((bytes[1] - b'A') as usize) * 26 + (bytes[0] - b'A') as usize)
     }
@@ -191,13 +238,15 @@ impl Debug for ValveName {
 
 #[derive(Clone, Debug)]
 struct Path {
-    opened_valves: ArrayVec<[(ValveName, usize); 15]>, // can only open 15 valves at most in 30s
+    /// List of opened valves, containing `(pressure, time)`.
+    opened_valves: ArrayVec<[(usize, usize); 15]>,
     route: ArrayVec<[ValveName; 30]>,
 }
 
 impl Path {
-    pub fn new() -> Self {
-        let aa = ValveName::from_bytes(b"AA");
+    /// Creates a new path containing just AA
+    pub fn new_start() -> Self {
+        let aa = ValveName::AA;
         let mut route = ArrayVec::new();
         route.push(aa);
         Self {
@@ -206,57 +255,12 @@ impl Path {
         }
     }
 
-    pub fn calculate_score(&self, input: &ValveInfoWeighted) -> usize {
+    pub fn calculate_score(&self) -> usize {
         self.opened_valves
             .iter()
-            .filter(|(_, start_time)| *start_time <= 30)
-            .map(|(v, start_time)| input[v].0 * (30 - start_time))
+            .filter(|(_, time)| *time < 30)
+            .map(|(pressure, time)| pressure * (30 - time))
             .sum()
-    }
-
-    // NOTE: the more accurate this is (ie. lower), the more branches can be trimmed
-    pub fn potential_score(&self, input: &ValveInfoWeighted, current_minute: usize) -> usize {
-        let current_valve_value = self
-            .opened_valves
-            .iter()
-            .map(|(name, minute)| {
-                let pressure = input[name].0;
-                let effective_minutes = 30 - minute;
-                effective_minutes * pressure
-            })
-            .sum::<usize>();
-
-        let mut remaining_valves: TinyVec<[usize; 20]> = input
-            .iter()
-            .filter(|(valve, (pressure, _))| {
-                *pressure != 0
-                    && !self
-                        .opened_valves
-                        .iter()
-                        .position(|(v, _)| v == *valve)
-                        .is_some()
-            })
-            .map(|(_name, (pressure, _targets))| *pressure)
-            .collect();
-
-        remaining_valves.sort_unstable_by(|a, b| a.cmp(b).reverse());
-
-        current_valve_value
-            + remaining_valves
-                .iter()
-                .enumerate()
-                .map(|(index, pressure)| {
-                    // array is sorted to have highest value first, so give highest value first
-                    // multiplying the index by 2 because you first need to move to the valve.
-                    // this check is very pessimistic in assuming it takes 1 minute to get to every place
-                    let minute_start = current_minute + index * 2 + 1;
-                    if minute_start >= 30 {
-                        return 0;
-                    }
-                    let active_turns = 30 - minute_start;
-                    active_turns * pressure
-                })
-                .sum::<usize>()
     }
 }
 
