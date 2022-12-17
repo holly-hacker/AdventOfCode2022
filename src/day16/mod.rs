@@ -29,6 +29,25 @@ impl SolutionSilver<usize> for Day {
     }
 }
 
+impl SolutionGold<usize, usize> for Day {
+    fn calculate_gold(input: &str) -> usize {
+        let input: ValveInfo = setup::parse_input(input);
+        let input = setup::optimize_input(&input);
+        let distances = setup::build_distance_map(&input);
+        // println!("len: {}", distances.len());
+        // println!("tree: {distances:#?}");
+
+        recursive_search_gold(
+            &input,
+            &distances,
+            &Path::new_start(),
+            4,
+            &Path::new_start(),
+            4,
+        )
+    }
+}
+
 fn recursive_search(
     input: &ValveInfoWeighted,
     distances: &ValveDistanceMap,
@@ -73,6 +92,100 @@ fn recursive_search(
             current_minute + target_distance + 1,
         );
         max = max.max(new_score);
+    }
+
+    max
+}
+
+fn recursive_search_gold(
+    input: &ValveInfoWeighted,
+    distances: &ValveDistanceMap,
+    path_1: &Path,
+    current_minute_1: usize,
+    path_2: &Path,
+    current_minute_2: usize,
+) -> usize {
+    // println!("Current minute: {current_minute}");
+    if current_minute_1 >= 30 && current_minute_2 >= 30 {
+        // println!("Exit because time limit is reached ({current_score}): {path:?}");
+        return path_1.calculate_score() + path_2.calculate_score();
+    }
+
+    // calculate what happens if you just wait at this point
+    let mut max = path_1.calculate_score() + path_2.calculate_score();
+
+    if current_minute_1 <= current_minute_2 {
+        let current_valve = path_1.route.last().unwrap();
+        for target_valve in input.keys() {
+            if target_valve == current_valve
+                || path_1.route.contains(target_valve)
+                || path_2.route.contains(target_valve)
+            {
+                continue;
+            }
+            let target_distance = distances[&(*current_valve, *target_valve)];
+
+            debug_assert_ne!(
+                target_distance, 0,
+                "target distance should never be zero for moving somewhere"
+            );
+
+            // move to the given location to turn the valve
+            let target_pressure = input[target_valve].0;
+            debug_assert_ne!(target_pressure, 0);
+            let mut cloned_path = path_1.clone();
+            cloned_path.route.push(*target_valve);
+            cloned_path
+                .opened_valves
+                .push((target_pressure, current_minute_1 + target_distance + 1));
+
+            // start searching from this place now
+            let new_score = recursive_search_gold(
+                input,
+                distances,
+                &cloned_path,
+                current_minute_1 + target_distance + 1,
+                &path_2,
+                current_minute_2,
+            );
+            max = max.max(new_score);
+        }
+    } else {
+        let current_valve = path_2.route.last().unwrap();
+        for target_valve in input.keys() {
+            if target_valve == current_valve
+                || path_1.route.contains(target_valve)
+                || path_2.route.contains(target_valve)
+            {
+                continue;
+            }
+            let target_distance = distances[&(*current_valve, *target_valve)];
+
+            debug_assert_ne!(
+                target_distance, 0,
+                "target distance should never be zero for moving somewhere"
+            );
+
+            // move to the given location to turn the valve
+            let target_pressure = input[target_valve].0;
+            debug_assert_ne!(target_pressure, 0);
+            let mut cloned_path = path_2.clone();
+            cloned_path.route.push(*target_valve);
+            cloned_path
+                .opened_valves
+                .push((target_pressure, current_minute_2 + target_distance + 1));
+
+            // start searching from this place now
+            let new_score = recursive_search_gold(
+                input,
+                distances,
+                &path_1,
+                current_minute_1,
+                &cloned_path,
+                current_minute_2 + target_distance + 1,
+            );
+            max = max.max(new_score);
+        }
     }
 
     max
@@ -305,4 +418,17 @@ fn test_silver_sample() {
 fn test_silver_real() {
     let output = Day::calculate_silver(Day::INPUT_REAL);
     assert_eq!(1754, output);
+}
+
+#[test]
+fn test_gold_sample() {
+    let output = Day::calculate_gold(Day::INPUT_SAMPLE);
+    assert_eq!(1707, output);
+}
+
+// commented out because it takes >7 minutes
+// #[test]
+fn test_gold_real() {
+    let output = Day::calculate_gold(Day::INPUT_REAL);
+    assert_eq!(2474, output);
 }

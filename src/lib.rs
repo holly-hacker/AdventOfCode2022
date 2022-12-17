@@ -48,7 +48,7 @@ register_days! {
     13 gold,
     14 gold,
     15 gold,
-    16 silver,
+    16 gold,
     17 gold,
 }
 
