@@ -428,6 +428,7 @@ fn test_gold_sample() {
 
 // commented out because it takes >7 minutes
 // #[test]
+#[allow(unused)]
 fn test_gold_real() {
     let output = Day::calculate_gold(Day::INPUT_REAL);
     assert_eq!(2474, output);
