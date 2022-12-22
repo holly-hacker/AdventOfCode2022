@@ -353,7 +353,7 @@ fn test_silver_sample() {
 
 #[test]
 fn test_silver_real() {
-    let output = Day::calculate_silver(Day::INPUT_SAMPLE);
+    let output = Day::calculate_silver(Day::INPUT_REAL);
     assert_eq!(1981, output);
 }
 
