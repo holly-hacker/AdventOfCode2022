@@ -177,7 +177,7 @@ impl<const SIZE: usize, const STRIDE: usize> Display for CrtDisplay<SIZE, STRIDE
                 let offset = bit_0 | bit_1 | bit_2 | bit_3 | bit_4 | bit_5 | bit_6 | bit_7;
 
                 let character = char::from_u32(BRAILLE_ZERO + offset as u32).unwrap();
-                write!(f, "{}", character)?;
+                write!(f, "{character}")?;
             }
 
             if lines_required > 1 {

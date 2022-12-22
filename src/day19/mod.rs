@@ -179,7 +179,7 @@ fn get_quality_recursive<const MAX_TIME: usize>(blueprint: &Blueprint, state: St
 
     // wait until the end. only useful if we have geode robots
     if !should_not_wait && state.geode_robots != 0 {
-        let mut state = state.clone();
+        let mut state = state;
         while state.time < MAX_TIME {
             state.tick();
         }

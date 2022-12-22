@@ -162,7 +162,7 @@ impl Maze {
     pub fn parse(lines: &mut Lines) -> Self {
         Self(
             lines
-                .take_while(|l| l.len() != 0)
+                .take_while(|l| !l.is_empty())
                 .map(MazeLine::parse)
                 .collect(),
         )
@@ -207,8 +207,8 @@ impl Maze {
     ) -> Option<((isize, isize), usize)> {
         let direction = location.get_direction();
         let new_position = (
-            (location.position.0 as isize + direction.0) as isize,
-            (location.position.1 as isize + direction.1) as isize,
+            (location.position.0 + direction.0),
+            (location.position.1 + direction.1),
         );
 
         match self.is_open_tile(new_position) {
@@ -421,9 +421,7 @@ impl MazeLine {
     }
 
     pub fn wrap_horizontal(&self, x: isize) -> isize {
-        let x = (x - self.0).rem_euclid(self.1.len() as isize) + self.0;
-
-        x
+        (x - self.0).rem_euclid(self.1.len() as isize) + self.0
     }
 }
 

@@ -155,7 +155,7 @@ fn find_other_exposed_voxels(
                 for actual_air in IMMEDIATE_NEIGHBOURS
                     .into_iter()
                     .map(|offset| surrounding_outside_air + offset)
-                    .filter(|air_pos| !all_voxels.contains(&air_pos))
+                    .filter(|air_pos| !all_voxels.contains(air_pos))
                 {
                     outside_air.insert(actual_air);
                 }
@@ -166,14 +166,14 @@ fn find_other_exposed_voxels(
         total_count += IMMEDIATE_NEIGHBOURS
             .into_iter()
             .map(|o| current_position + o)
-            .filter(|neighbour| outside_air.contains(&neighbour))
+            .filter(|neighbour| outside_air.contains(neighbour))
             .count();
 
         // add all neighbours that are not checked yet
         let mut recurse_positions = ALL_NEIGHBOURS
             .into_iter()
             .map(|offset| current_position + offset)
-            .filter(|pos| all_voxels.contains(&pos))
+            .filter(|pos| all_voxels.contains(pos))
             .collect::<ArrayVec<[_; 26]>>();
         recurse_positions.sort_unstable(); // prevent RNG during debugging
         for recurse_pos in recurse_positions {

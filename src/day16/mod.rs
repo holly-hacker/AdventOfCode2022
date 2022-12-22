@@ -145,7 +145,7 @@ fn recursive_search_gold(
                 distances,
                 &cloned_path,
                 current_minute_1 + target_distance + 1,
-                &path_2,
+                path_2,
                 current_minute_2,
             );
             max = max.max(new_score);
@@ -179,7 +179,7 @@ fn recursive_search_gold(
             let new_score = recursive_search_gold(
                 input,
                 distances,
-                &path_1,
+                path_1,
                 current_minute_1,
                 &cloned_path,
                 current_minute_2 + target_distance + 1,
@@ -209,7 +209,6 @@ impl ToString for ValveName {
             ((self.0 % 26) as u8 + b'A'),
         ])
         .unwrap()
-        .to_string()
     }
 }
 
@@ -271,9 +270,7 @@ mod setup {
         let mut set = AHashSet::new();
         set.insert(start);
         let (_pressure, targets) = &valve_info[&start];
-        let new_targets = get_all_target_distances_recursive(set, &targets, valve_info, 0);
-
-        new_targets
+        get_all_target_distances_recursive(set, targets, valve_info, 0)
     }
 
     fn get_all_target_distances_recursive(
@@ -363,7 +360,7 @@ mod setup {
                     valve_info,
                     total_distance,
                 );
-            } else if total_distance < found_distances[&target] {
+            } else if total_distance < found_distances[target] {
                 // already exists but we got there in a faster way
                 // println!("{start:?} > inserting {target:?} with val {total_distance} (faster!)");
                 found_distances.insert(*target, total_distance);

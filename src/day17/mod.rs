@@ -48,7 +48,7 @@ impl SolutionSilver<usize> for Day {
 
                 // drop down
                 if !block.collides(x as isize, y as isize - 1, &chamber) {
-                    y = y - 1;
+                    y -= 1;
                 } else {
                     // could not drop down
                     // write the block to the chamber
@@ -98,13 +98,12 @@ impl SolutionGold<usize, usize> for Day {
                             let one = history.get(-1 - one_index);
                             let other = history.get(-1 - other_index);
 
-                            match (one, other) {
-                                (Some((_y1, input_index1)), Some((_y2, input_index2))) => {
-                                    if input_index1 == input_index2 {
-                                        continue;
-                                    }
+                            if let (Some((_y1, input_index1)), Some((_y2, input_index2))) =
+                                (one, other)
+                            {
+                                if input_index1 == input_index2 {
+                                    continue;
                                 }
-                                _ => (),
                             }
 
                             all_match = false;
@@ -158,7 +157,7 @@ impl SolutionGold<usize, usize> for Day {
 
                 // drop down
                 if !block.collides(x as isize, y as isize - 1, &chamber) {
-                    y = y - 1;
+                    y -= 1;
                 } else {
                     // could not drop down
                     // write the block to the chamber
@@ -220,10 +219,9 @@ impl BlockType {
         self.get_tiles().iter().any(|(tile_x, tile_y)| {
             let new_y = y - tile_y;
             let new_x = x + tile_x;
-            let collides = !(0..7).contains(&new_x)
+            !(0..7).contains(&new_x)
                 || !(0..).contains(&new_y)
-                || chamber[new_y as usize][new_x as usize];
-            collides
+                || chamber[new_y as usize][new_x as usize]
         })
     }
 }
