@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 use crate::utils::fast_parse_int;
 
 use super::*;
@@ -13,7 +15,7 @@ impl SolutionSilver<usize> for Day {
         let input = parse_input(input);
 
         input
-            .iter()
+            .par_iter()
             .map(get_quality::<24>)
             // .inspect(|quality| println!("quality: {}", quality))
             .enumerate()
@@ -27,7 +29,7 @@ impl SolutionGold<usize, usize> for Day {
         let input = parse_input(input);
 
         input
-            .iter()
+            .par_iter()
             .take(3)
             .map(get_quality::<32>)
             // .inspect(|quality| println!("quality: {}", quality))
