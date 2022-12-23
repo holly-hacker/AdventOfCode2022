@@ -21,8 +21,6 @@ impl SolutionSilver<usize> for Day {
             'positions: for (x, y) in &positions {
                 let (x, y) = (*x, *y);
 
-                // TODO: don't need to insert Multiple if it was already in there
-
                 let occ_n = positions.contains(&(x, y - 1));
                 let occ_nw = positions.contains(&(x - 1, y - 1));
                 let occ_ne = positions.contains(&(x + 1, y - 1));
@@ -49,10 +47,13 @@ impl SolutionSilver<usize> for Day {
                     };
                     if occupied {
                         let new_occupancy = match movements.get(&new_pos) {
-                            Some(_) => Occupancy::Multiple,
-                            None => Occupancy::Single((x, y)),
+                            Some(Occupancy::Multiple) => None,
+                            Some(_) => Some(Occupancy::Multiple),
+                            None => Some(Occupancy::Single((x, y))),
                         };
-                        movements.insert(new_pos, new_occupancy);
+                        if let Some(insert) = new_occupancy {
+                            movements.insert(new_pos, insert);
+                        }
 
                         continue 'positions;
                     }
@@ -78,17 +79,17 @@ impl SolutionSilver<usize> for Day {
         }
 
         // calculate biggest rect
-        let (x_min, y_min, x_max, y_max) = positions.iter().fold(
-            (isize::MAX, isize::MAX, isize::MIN, isize::MIN),
-            |acc, item| {
-                (
-                    acc.0.min(item.0),
-                    acc.1.min(item.1),
-                    acc.2.max(item.0),
-                    acc.3.max(item.1),
-                )
-            },
-        );
+        let (x_min, y_min, x_max, y_max) =
+            positions
+                .iter()
+                .fold((i32::MAX, i32::MAX, i32::MIN, i32::MIN), |acc, item| {
+                    (
+                        acc.0.min(item.0),
+                        acc.1.min(item.1),
+                        acc.2.max(item.0),
+                        acc.3.max(item.1),
+                    )
+                });
 
         let x_diff = (x_max - x_min + 1) as usize;
         let y_diff = (y_max - y_min + 1) as usize;
@@ -113,8 +114,6 @@ impl SolutionGold<usize, usize> for Day {
 
             'positions: for (x, y) in &positions {
                 let (x, y) = (*x, *y);
-
-                // TODO: don't need to insert Multiple if it was already in there
 
                 let occ_n = positions.contains(&(x, y - 1));
                 let occ_nw = positions.contains(&(x - 1, y - 1));
@@ -142,10 +141,13 @@ impl SolutionGold<usize, usize> for Day {
                     };
                     if occupied {
                         let new_occupancy = match movements.get(&new_pos) {
-                            Some(_) => Occupancy::Multiple,
-                            None => Occupancy::Single((x, y)),
+                            Some(Occupancy::Multiple) => None,
+                            Some(_) => Some(Occupancy::Multiple),
+                            None => Some(Occupancy::Single((x, y))),
                         };
-                        movements.insert(new_pos, new_occupancy);
+                        if let Some(insert) = new_occupancy {
+                            movements.insert(new_pos, insert);
+                        }
 
                         continue 'positions;
                     }
@@ -178,7 +180,7 @@ impl SolutionGold<usize, usize> for Day {
 }
 
 enum Occupancy {
-    Single((isize, isize)),
+    Single((i32, i32)),
     Multiple,
 }
 
@@ -199,7 +201,7 @@ impl Direction {
     ];
 }
 
-fn parse_input(input: &str) -> AHashSet<(isize, isize)> {
+fn parse_input(input: &str) -> AHashSet<(i32, i32)> {
     input
         .lines()
         .enumerate()
@@ -209,7 +211,7 @@ fn parse_input(input: &str) -> AHashSet<(isize, isize)> {
                 .enumerate()
                 .filter_map(move |(x, c)| {
                     if *c == b'#' {
-                        Some((x as isize, y as isize))
+                        Some((x as i32, y as i32))
                     } else {
                         None
                     }
