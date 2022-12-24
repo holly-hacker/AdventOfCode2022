@@ -1,6 +1,7 @@
 #![feature(array_chunks)]
 #![feature(array_windows)]
 #![feature(iter_array_chunks)]
+#![feature(binary_heap_retain)]
 #![allow(
     clippy::cast_possible_truncation,
     clippy::wildcard_imports,
@@ -56,6 +57,7 @@ register_days! {
     21 gold,
     22 gold,
     23 gold,
+    24 gold,
 }
 
 fn run_timed<T, F>(fun: F) -> (T, std::time::Duration)
