@@ -1,4 +1,4 @@
-use std::{cmp::Reverse, collections::BinaryHeap};
+use std::collections::BinaryHeap;
 
 use ahash::{AHashMap, AHashSet};
 
@@ -14,24 +14,22 @@ impl SolutionSilver<usize> for Day {
     fn calculate_silver(input: &str) -> usize {
         let input = Input::parse(input);
 
-        do_dfs_forward(&input, 0)
+        do_dfs::<false>(&input, 0)
     }
 }
 
 impl SolutionGold<usize, usize> for Day {
     fn calculate_gold(input: &str) -> usize {
-        let mut input = Input::parse(input);
+        let input = Input::parse(input);
 
         let time_0 = 0;
-        let time_1 = do_dfs_forward(&input, time_0);
-        input.is_swapped = !input.is_swapped;
-        let time_2 = do_dfs_backwards(&input, time_1);
-        input.is_swapped = !input.is_swapped;
-        do_dfs_forward(&input, time_2)
+        let time_1 = do_dfs::<false>(&input, time_0);
+        let time_2 = do_dfs::<true>(&input, time_1);
+        do_dfs::<false>(&input, time_2)
     }
 }
 
-fn do_dfs_forward(input: &Input, start_time: usize) -> usize {
+fn do_dfs<const REV: bool>(input: &Input, start_time: usize) -> usize {
     // we're essentially pathfinding in a 3D field, where time is the Z direction. We cannot go
     // back in the Z direction, but an exit is available at every value of Z.
     // this can be optimized this more by building up these Z levels.
@@ -39,7 +37,10 @@ fn do_dfs_forward(input: &Input, start_time: usize) -> usize {
     let mut visited = AHashSet::default();
     let mut queue = BinaryHeap::new();
 
-    queue.push(ProgressPosition(input.get_start_pos(), start_time));
+    queue.push(ProgressPosition::<REV>(
+        input.get_start_pos::<REV>(),
+        start_time,
+    ));
 
     let mut best_result = usize::MAX;
 
@@ -51,12 +52,8 @@ fn do_dfs_forward(input: &Input, start_time: usize) -> usize {
 
         let ProgressPosition(pos, minute) = current;
 
-        if (minute + 1) >= best_result {
-            continue;
-        }
-
+        debug_assert!((minute + 1) < best_result);
         debug_assert!(input.pos_free_at_minute(pos, minute));
-        // println!("Evaluating {pos:?} at minute {minute:?}");
 
         // try waiting, if we can
         if input.pos_free_at_minute(pos, minute + 1) {
@@ -66,10 +63,10 @@ fn do_dfs_forward(input: &Input, start_time: usize) -> usize {
             }
         }
 
-        if pos == input.get_start_pos() {
+        if pos == input.get_start_pos::<REV>() {
             // we need special handling for the start position. We can only move down or wait then.
-            if input.pos_free_at_minute(input.get_first_move(), minute + 1) {
-                let next_pos = ProgressPosition(input.get_first_move(), minute + 1);
+            if input.pos_free_at_minute(input.get_first_move::<REV>(), minute + 1) {
+                let next_pos = ProgressPosition(input.get_first_move::<REV>(), minute + 1);
                 if next_pos.best_end_time(input) < best_result {
                     queue.push(next_pos);
                 }
@@ -81,7 +78,7 @@ fn do_dfs_forward(input: &Input, start_time: usize) -> usize {
 
             for offset in offsets {
                 let new_pos = (pos.0 + offset.0, pos.1 + offset.1);
-                if new_pos == input.get_end_pos() {
+                if new_pos == input.get_end_pos::<REV>() {
                     // we got there!
                     best_result = best_result.min(minute + 1);
                     // dbg!(best_result);
@@ -111,80 +108,12 @@ fn do_dfs_forward(input: &Input, start_time: usize) -> usize {
     best_result
 }
 
-fn do_dfs_backwards(input: &Input, start_time: usize) -> usize {
-    let mut visited = AHashSet::default();
-    let mut queue = BinaryHeap::new();
-
-    queue.push(Reverse(ProgressPosition(input.get_start_pos(), start_time)));
-
-    let mut best_result = usize::MAX;
-
-    'main_loop: while let Some(Reverse(current)) = queue.pop() {
-        if visited.contains(&current) {
-            continue;
-        }
-        visited.insert(current.clone());
-
-        let ProgressPosition(pos, minute) = current;
-
-        if (minute + 1) >= best_result {
-            continue;
-        }
-
-        debug_assert!(input.pos_free_at_minute(pos, minute));
-
-        if input.pos_free_at_minute(pos, minute + 1) {
-            let next_pos = ProgressPosition(pos, minute + 1);
-            if next_pos.best_end_time(input) < best_result {
-                queue.push(Reverse(next_pos));
-            }
-        }
-
-        if pos == input.get_start_pos() {
-            if input.pos_free_at_minute(input.get_first_move(), minute + 1) {
-                let next_pos = ProgressPosition(input.get_first_move(), minute + 1);
-                if next_pos.best_end_time(input) < best_result {
-                    queue.push(Reverse(next_pos));
-                }
-            }
-        } else {
-            let offsets = [(-1, 0), (0, -1), (1, 0), (0, 1)];
-
-            for offset in offsets {
-                let new_pos = (pos.0 + offset.0, pos.1 + offset.1);
-                if new_pos == input.get_end_pos() {
-                    best_result = best_result.min(minute + 1);
-
-                    queue.retain(|x| x.0.best_end_time(input) < best_result);
-
-                    continue 'main_loop;
-                }
-
-                if (0..input.width).contains(&(new_pos.0 as usize))
-                    && (0..input.height).contains(&(new_pos.1 as usize))
-                    && input.pos_free_at_minute(new_pos, minute + 1)
-                {
-                    let next_pos = ProgressPosition(new_pos, minute + 1);
-                    if next_pos.best_end_time(input) < best_result {
-                        queue.push(Reverse(next_pos));
-                    }
-                }
-            }
-        }
-    }
-
-    best_result
-}
-
 #[derive(Debug, Default)]
 struct Input {
     /// The width, excluding walls
     width: usize,
     /// The height, excluding walls
     height: usize,
-
-    /// Whether the start and end is swapped.
-    is_swapped: bool,
 
     /// A hashmap containing all blizzards moving right for a certain the line number (the Y
     /// coordinate).
@@ -212,7 +141,7 @@ impl Input {
                 ret.height = y;
                 return;
             }
-            bytes.into_iter().skip(1).enumerate().for_each(|(x, char)| {
+            bytes.iter().skip(1).enumerate().for_each(|(x, char)| {
                 let y = y;
                 match char {
                     b'<' => ret.horizontal_left.entry(y).or_insert(vec![]).push(x),
@@ -232,23 +161,23 @@ impl Input {
         ret
     }
 
-    const fn get_start_pos(&self) -> (isize, isize) {
-        if self.is_swapped {
+    const fn get_start_pos<const REV: bool>(&self) -> (isize, isize) {
+        if REV {
             (self.width as isize - 1, self.height as isize)
         } else {
             (0, -1)
         }
     }
 
-    const fn get_end_pos(&self) -> (isize, isize) {
-        if self.is_swapped {
+    const fn get_end_pos<const REV: bool>(&self) -> (isize, isize) {
+        if REV {
             (0, -1)
         } else {
             (self.width as isize - 1, self.height as isize)
         }
     }
-    const fn get_first_move(&self) -> (isize, isize) {
-        if self.is_swapped {
+    const fn get_first_move<const REV: bool>(&self) -> (isize, isize) {
+        if REV {
             (self.width as isize - 1, self.height as isize - 1)
         } else {
             (0, 0)
@@ -287,31 +216,35 @@ impl Input {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-struct ProgressPosition((isize, isize), usize);
+struct ProgressPosition<const REV: bool>((isize, isize), usize);
 
-impl ProgressPosition {
+impl<const REV: bool> ProgressPosition<REV> {
     fn score(&self) -> isize {
-        // TODO: also consider time?
-        self.0 .0 + self.0 .1
+        -(self.1 as isize)
+            + if REV {
+                -(self.0 .0 + self.0 .1)
+            } else {
+                self.0 .0 + self.0 .1
+            }
     }
 
     /// Calculates the best time this can reach the end with
     fn best_end_time(&self, input: &Input) -> usize {
         let current_time = self.1;
-        let (end_x, end_y) = input.get_end_pos();
+        let (end_x, end_y) = input.get_end_pos::<REV>();
         let manhattan_distance = end_x.abs_diff(self.0 .0) + end_y.abs_diff(self.0 .1);
 
         current_time + manhattan_distance
     }
 }
 
-impl PartialOrd for ProgressPosition {
+impl<const REV: bool> PartialOrd for ProgressPosition<REV> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for ProgressPosition {
+impl<const REV: bool> Ord for ProgressPosition<REV> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.score().cmp(&other.score())
     }

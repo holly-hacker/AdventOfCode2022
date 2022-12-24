@@ -4,13 +4,13 @@ default:
 
 # Runs clippy
 check feature='default':
-    cargo clippy --benches --tests --no-default-features
-    cargo clippy --benches --tests  --no-default-features --features {{feature}}
+    cargo +nightly clippy --benches --tests --no-default-features
+    cargo +nightly clippy --benches --tests  --no-default-features --features {{feature}}
 
 # Runs clippy using pedantic options
 check-pedantic feature='default':
-    cargo clippy --benches --tests --no-default-features -- --warn clippy::nursery --warn clippy::pedantic
-    cargo clippy --benches --tests  --no-default-features --features {{feature}} -- --warn clippy::nursery --warn clippy::pedantic
+    cargo +nightly clippy --benches --tests --no-default-features -- --warn clippy::nursery --warn clippy::pedantic
+    cargo +nightly clippy --benches --tests  --no-default-features --features {{feature}} -- --warn clippy::nursery --warn clippy::pedantic
 
 # Benchmarks a day using Criterion
 bench feature='default':
