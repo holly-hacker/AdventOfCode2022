@@ -14,6 +14,14 @@ impl SolutionSilver<String> for Day {
     }
 }
 
+// NOTE: this solution stub is here to make the benchmarking setup work. it didn't expect a fully
+// solved day to not have a gold part.
+impl SolutionGold<String, usize> for Day {
+    fn calculate_gold(_input: &str) -> usize {
+        0
+    }
+}
+
 fn encode_snafu(input: isize) -> String {
     let mut buffer = TinyVec::<[char; 8]>::new();
 
