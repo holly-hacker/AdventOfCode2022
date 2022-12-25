@@ -94,9 +94,7 @@ impl SolutionSilver<usize> for Day {
         let x_diff = (x_max - x_min + 1) as usize;
         let y_diff = (y_max - y_min + 1) as usize;
 
-        let total = x_diff * y_diff - positions.len();
-
-        total
+        x_diff * y_diff - positions.len()
     }
 }
 
